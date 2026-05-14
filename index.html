@@ -3,682 +3,680 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SPENCER DIONISIO</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <title>Spencer Dionisio</title>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg:      #f0ebe0;
-      --text:    #111;
-      --muted:   #888;
-      --border:  #c8c2b4;
-      --sidebar: 230px;
+      --paper-l: #ede3c3;
+      --paper-r: #f3e9d0;
+      --ink:     #1c140a;
+      --faded:   #6b5a3e;
+      --rule:    rgba(107,90,62,0.38);
     }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Space Mono', 'Courier New', monospace;
-      font-size: 12px;
-      height: 100vh;
-      display: flex;
-      overflow: hidden;
+    html, body { width:100%; height:100%; overflow:hidden; font-family:'EB Garamond',Georgia,serif; color:var(--ink); }
+
+    .paper {
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.038'/%3E%3C/svg%3E"),
+        linear-gradient(165deg,rgba(255,252,235,0.28) 0%,transparent 55%);
     }
 
-    /* ── SIDEBAR ── */
-    #sidebar {
-      width: var(--sidebar);
-      flex-shrink: 0;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      padding: 22px 18px 18px;
-      border-right: 1px solid var(--border);
-      overflow-y: auto;
-      overflow-x: hidden;
+    /* ═══════════════════════════════════════
+       LAYOUT
+    ═══════════════════════════════════════ */
+    #book { display:flex; width:100vw; height:100vh; }
+
+    /* ── Left page ── */
+    #left-page {
+      width:300px; flex-shrink:0; height:100%;
+      display:flex; flex-direction:column;
+      padding:48px 34px 26px;
+      background-color:var(--paper-l);
+      border-right:1px solid #c4ae88;
+      position:relative; z-index:2;
+      transition:transform 0.32s cubic-bezier(.4,0,.2,1);
+    }
+    #left-page::after {
+      content:''; position:absolute;
+      top:0; right:0; bottom:0; width:32px;
+      background:linear-gradient(to left,rgba(0,0,0,0.09),transparent);
+      pointer-events:none;
     }
 
-    #site-name {
-      font-size: 19px;
-      font-weight: 700;
-      line-height: 1.15;
-      letter-spacing: -0.5px;
-      margin-bottom: 28px;
-      cursor: pointer;
-      user-select: none;
-    }
-    #site-name:hover { opacity: 0.65; }
-
-    .nav-group { margin-top: 14px; }
-
-    .nav-category {
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 1px;
-      margin-bottom: 5px;
+    /* ── Right page container ── */
+    #right-page {
+      flex:1; height:100%;
+      position:relative; overflow:hidden;
     }
 
-    .nav-item {
-      display: flex;
-      align-items: baseline;
-      gap: 5px;
-      padding: 2px 0;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .nav-item:hover .nav-label { text-decoration: underline; }
+    /*
+      TWO-LAYER ARCHITECTURE
+      ─────────────────────
+      #page-b  (z:1)  — incoming page, always below, fully visible
+      #page-a  (z:10) — outgoing page, sits on top, gets peeled away
+      #curl-flap (z:20) — back of the peeling page (drawn over both layers)
+      #spine-shadow (z:50) — always on top
+    */
 
-    .bracket {
-      font-size: 11px;
-      flex-shrink: 0;
-      width: 22px;
-      color: var(--text);
-    }
-
-    .nav-label {
-      font-size: 11px;
-      letter-spacing: 0.2px;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .rpage {
+      position:absolute; inset:0;
+      background-color:var(--paper-r);
+      display:flex; flex-direction:column;
+      padding:48px 56px 26px;
+      will-change:clip-path, opacity;
     }
 
-    .nav-item.active .nav-label { font-weight: 700; }
+    #page-b { z-index:1;  }
+    #page-a { z-index:10; }
 
-    #sidebar-foot {
-      margin-top: auto;
-      padding-top: 14px;
-      border-top: 1px solid var(--border);
+    /* Back-of-page gradient on the curl flap.
+       Fold-line edge (top-left of triangle) = darkest: shadow of the bend.
+       Free corner (bottom-right) = slightly lighter but still warm.          */
+    #curl-flap {
+      position:absolute; inset:0; z-index:20;
+      background:
+        linear-gradient(
+          135deg,
+          rgba(172,152,114,0.99)  0%,
+          rgba(200,180,142,0.97) 18%,
+          rgba(224,206,170,0.94) 45%,
+          rgba(238,220,188,0.91) 72%,
+          rgba(228,210,178,0.88) 100%
+        );
+      opacity:0; pointer-events:none;
+      will-change:clip-path, filter, opacity;
     }
 
-    /* ── MAIN ── */
-    #main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
+    /* Permanent spine shadow */
+    #spine-shadow {
+      position:absolute; top:0; left:0; bottom:0; width:38px; z-index:50;
+      background:linear-gradient(to right,rgba(0,0,0,0.13),transparent);
+      pointer-events:none;
     }
 
-    #content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 36px 44px;
+    /* ═══════════════════════════════════════
+       PAGE CHROME (shared by both layers)
+    ═══════════════════════════════════════ */
+    .page-header {
+      display:flex; align-items:baseline; justify-content:space-between;
+      border-bottom:1px solid var(--rule); padding-bottom:8px;
+      margin-bottom:28px; flex-shrink:0;
     }
+    .hdr-num   { width:28px; font-size:11px; font-style:italic; color:var(--faded); }
+    .hdr-num.r { text-align:right; }
+    .hdr-title { flex:1; text-align:center; font-size:10.5px; letter-spacing:3.5px; text-transform:uppercase; color:var(--faded); }
 
-    /* ── FOOTER ── */
-    #contact {
-      border-top: 1px solid var(--border);
-      padding: 10px 20px;
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 28px;
-      flex-shrink: 0;
+    .page-footer {
+      display:flex; align-items:baseline; justify-content:space-between;
+      border-top:1px solid var(--rule); padding-top:9px;
+      margin-top:auto; flex-shrink:0;
     }
-    #contact a, #contact span {
-      font-size: 11px;
-      color: var(--muted);
-      text-decoration: none;
+    .foot-link { font-size:10.5px; font-style:italic; color:var(--faded); text-decoration:none; }
+    .foot-link:hover { text-decoration:underline; }
+    .foot-num  { font-size:11px; font-style:italic; color:var(--faded); }
+
+    /* ═══════════════════════════════════════
+       TABLE OF CONTENTS
+    ═══════════════════════════════════════ */
+    #toc-body { flex:1; overflow-y:auto; scrollbar-width:none; }
+    #toc-body::-webkit-scrollbar { display:none; }
+
+    .toc-h { font-size:10.5px; letter-spacing:4px; text-transform:uppercase; text-align:center; color:var(--faded); margin-bottom:26px; }
+    .toc-group { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--faded); margin:20px 0 8px; opacity:0.7; }
+    .toc-row { display:flex; align-items:baseline; cursor:pointer; padding:4px 0; }
+    .toc-row:hover .toc-name { text-decoration:underline; }
+    .toc-roman { font-style:italic; font-size:11.5px; color:var(--faded); width:28px; flex-shrink:0; }
+    .toc-name  { font-size:13px; }
+    .toc-dots  { flex:1; overflow:hidden; position:relative; height:1.2em; margin:0 5px; }
+    .toc-dots::after {
+      content:'. . . . . . . . . . . . . . . . . . . . . . . . . . . .';
+      position:absolute; bottom:3px; left:0;
+      font-size:9.5px; color:var(--faded); white-space:nowrap; overflow:hidden; width:100%;
     }
-    #contact a:hover { color: var(--text); text-decoration: underline; }
+    .toc-pg { font-size:11.5px; font-style:italic; color:var(--faded); width:18px; text-align:right; flex-shrink:0; }
 
-    /* ── SECTION CHROME ── */
-    .section { display: none; }
-    .section.active { display: block; }
+    /* ═══════════════════════════════════════
+       SECTION CONTENT
+    ═══════════════════════════════════════ */
+    .content-scroll { flex:1; overflow-y:auto; scrollbar-width:none; }
+    .content-scroll::-webkit-scrollbar { display:none; }
 
-    .sec-eyebrow {
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 6px;
+    .sec { display:none; }
+    .sec.active { display:block; }
+
+    .ch-eyebrow { font-size:10px; letter-spacing:3px; text-transform:uppercase; text-align:center; color:var(--faded); margin-bottom:6px; }
+    .ch-title   { font-size:clamp(18px,2.2vw,24px); font-style:italic; text-align:center; margin-bottom:22px; line-height:1.2; }
+    .ch-rule    { border:none; border-top:1px solid var(--rule); width:50px; margin:0 auto 24px; }
+
+    .drop-cap::first-letter { font-size:4em; font-weight:500; float:left; line-height:0.78; padding-right:5px; padding-top:6px; }
+
+    .body-p { font-size:clamp(13px,1.3vw,15px); line-height:1.88; text-align:justify; hyphens:auto; margin-bottom:13px; text-indent:1.6em; }
+    .body-p.no-indent { text-indent:0; }
+
+    .role    { margin-bottom:22px; }
+    .role-hd { display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:4px; }
+    .role-name { font-size:clamp(13px,1.3vw,15px); font-style:italic; }
+    .role-date { font-size:11px; color:var(--faded); }
+    .role-sub  { font-size:11.5px; color:var(--faded); font-style:italic; margin:3px 0 9px; }
+
+    .blist { list-style:none; }
+    .blist li { font-size:clamp(12px,1.2vw,14px); line-height:1.75; text-align:justify; padding-left:1.4em; text-indent:-1.4em; margin-bottom:4px; }
+    .blist li::before { content:'— '; color:var(--faded); }
+
+    .tools    { font-size:10.5px; color:var(--faded); font-style:italic; margin-top:9px; }
+    .ornament { text-align:center; color:var(--faded); letter-spacing:7px; font-size:12px; margin:18px 0; }
+    .sub-lbl  { font-size:9.5px; letter-spacing:2.5px; text-transform:uppercase; color:var(--faded); margin:14px 0 5px; }
+
+    .skill-g   { margin-bottom:16px; }
+    .skill-lbl { font-size:9.5px; letter-spacing:2.5px; text-transform:uppercase; color:var(--faded); margin-bottom:4px; }
+    .skill-val { font-size:clamp(12px,1.2vw,14px); line-height:1.7; }
+
+    .about-p { font-size:clamp(13px,1.3vw,15px); line-height:1.9; text-align:justify; hyphens:auto; margin-bottom:13px; text-indent:1.6em; }
+    .about-p.first { text-indent:0; }
+
+    /* ═══════════════════════════════════════
+       MOBILE
+    ═══════════════════════════════════════ */
+    #toc-toggle {
+      display:none; position:fixed; top:14px; left:14px; z-index:200;
+      background:var(--paper-l); border:1px solid #c4ae88; color:var(--faded);
+      font-family:'EB Garamond',serif; font-size:13px; font-style:italic;
+      padding:6px 14px; cursor:pointer; letter-spacing:1px;
     }
+    #toc-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:90; }
+    #toc-overlay.open { display:block; }
 
-    .sec-title {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      margin-bottom: 28px;
-      line-height: 1.1;
+    @media (max-width:700px) {
+      #toc-toggle { display:block; }
+      #left-page  { position:fixed; top:0; left:0; bottom:0; transform:translateX(-100%); z-index:100; box-shadow:4px 0 24px rgba(0,0,0,0.25); padding-top:60px; }
+      #left-page.open { transform:translateX(0); }
+      .rpage { padding:56px 22px 22px; }
     }
-
-    hr.divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 22px 0;
+    @media (min-width:701px) and (max-width:960px) {
+      #left-page { width:240px; padding:40px 22px 22px; }
+      .rpage     { padding:40px 36px 22px; }
     }
-
-    /* ── HOME ── */
-    #home-wrap {
-      display: grid;
-      grid-template-columns: 1fr 180px;
-      gap: 40px;
-      align-items: start;
+    @media (min-width:1400px) {
+      #left-page { width:340px; padding:56px 44px 30px; }
+      .rpage     { padding:56px 72px 30px; }
     }
-
-    #home-photo img {
-      width: 180px;
-      height: 180px;
-      object-fit: cover;
-      border-radius: 50%;
-      filter: grayscale(100%) contrast(1.05);
-      border: 1px solid var(--border);
-    }
-
-    #home-photo .photo-caption {
-      font-size: 10px;
-      color: var(--muted);
-      text-align: center;
-      margin-top: 8px;
-    }
-
-    .home-tagline {
-      font-size: 13px;
-      line-height: 1.85;
-      margin-bottom: 14px;
-    }
-
-    .home-sub {
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.75;
-      margin-bottom: 28px;
-    }
-
-    .stat-row {
-      display: flex;
-      gap: 28px;
-      flex-wrap: wrap;
-    }
-
-    .stat {
-      border-left: 2px solid var(--text);
-      padding-left: 10px;
-    }
-
-    .stat-num {
-      font-size: 22px;
-      font-weight: 700;
-      line-height: 1;
-    }
-
-    .stat-lbl {
-      font-size: 9px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-top: 3px;
-    }
-
-    /* ── CARDS ── */
-    .card {
-      border: 1px solid var(--border);
-      padding: 20px 22px;
-      margin-bottom: 16px;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 4px;
-    }
-
-    .card-title { font-size: 14px; font-weight: 700; }
-    .card-date  { font-size: 11px; color: var(--muted); }
-
-    .card-tagline {
-      font-size: 11px;
-      font-style: italic;
-      color: var(--muted);
-      margin-bottom: 12px;
-    }
-
-    .blist { list-style: none; }
-    .blist li {
-      font-size: 12px;
-      line-height: 1.65;
-      padding-left: 16px;
-      position: relative;
-      margin-bottom: 3px;
-    }
-    .blist li::before { content: '—'; position: absolute; left: 0; }
-
-    .tools-line {
-      margin-top: 10px;
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 0.3px;
-    }
-
-    /* ── PROJECT THREE-COL ── */
-    .proj-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      margin-bottom: 20px;
-    }
-
-    .proj-col-head {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    /* ── SKILLS ── */
-    .skill-group { margin-bottom: 20px; }
-
-    .skill-group-head {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    .skill-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-
-    .tag {
-      border: 1px solid var(--border);
-      padding: 3px 9px;
-      font-size: 11px;
-    }
-
-    /* ── ABOUT ── */
-    .about-body {
-      font-size: 13px;
-      line-height: 1.9;
-      max-width: 580px;
-    }
-    .about-body p { margin-bottom: 16px; }
   </style>
 </head>
 <body>
 
-<!-- ════════════════════════════ SIDEBAR ════════════════════════════ -->
-<nav id="sidebar">
+<button id="toc-toggle" onclick="openTOC()">☰ Contents</button>
+<div id="toc-overlay" onclick="closeTOC()"></div>
 
-  <div id="site-name" onclick="show('home')">SPENCER<br>DIONISIO</div>
+<div id="book">
 
-  <div class="nav-group">
-    <div class="nav-category">/EXPERIENCE</div>
-    <div class="nav-item" onclick="show('hh-angus')">
-      <span class="bracket">[ ]</span><span class="nav-label">HH ANGUS</span>
+  <!-- ══════════════════════════ LEFT PAGE ══════════════════════════ -->
+  <div id="left-page" class="paper">
+    <div class="page-header">
+      <span class="hdr-num" style="font-style:italic;font-size:11px;color:var(--faded);">i</span>
+      <span class="hdr-title">Spencer Dionisio</span>
+      <span class="hdr-num r"></span>
     </div>
-    <div class="nav-item" onclick="show('ats')">
-      <span class="bracket">[ ]</span><span class="nav-label">ATS AUTOMATION</span>
+
+    <div id="toc-body">
+      <div class="toc-h">Table of Contents</div>
+
+      <div class="toc-group">Experience</div>
+      <div class="toc-row" onclick="navigate('hh-angus',2,'HH Angus &amp; Associates')">
+        <span class="toc-roman">i.</span><span class="toc-name">HH Angus &amp; Associates</span>
+        <span class="toc-dots"></span><span class="toc-pg">2</span>
+      </div>
+      <div class="toc-row" onclick="navigate('ats',4,'ATS Industrial Automation')">
+        <span class="toc-roman">ii.</span><span class="toc-name">ATS Industrial Automation</span>
+        <span class="toc-dots"></span><span class="toc-pg">4</span>
+      </div>
+      <div class="toc-row" onclick="navigate('uwlab',5,'UW Research Lab')">
+        <span class="toc-roman">iii.</span><span class="toc-name">UW Research Lab</span>
+        <span class="toc-dots"></span><span class="toc-pg">5</span>
+      </div>
+
+      <div class="toc-group">Projects</div>
+      <div class="toc-row" onclick="navigate('lunar',6,'Lunar Tread Testing Rig')">
+        <span class="toc-roman">iv.</span><span class="toc-name">Lunar Tread Testing Rig</span>
+        <span class="toc-dots"></span><span class="toc-pg">6</span>
+      </div>
+      <div class="toc-row" onclick="navigate('eshabot',7,'ESHAbot')">
+        <span class="toc-roman">v.</span><span class="toc-name">ESHAbot</span>
+        <span class="toc-dots"></span><span class="toc-pg">7</span>
+      </div>
+      <div class="toc-row" onclick="navigate('inventory',8,'Inventory Tracking App')">
+        <span class="toc-roman">vi.</span><span class="toc-name">Inventory Tracking App</span>
+        <span class="toc-dots"></span><span class="toc-pg">8</span>
+      </div>
+
+      <div class="toc-group" style="margin-top:16px;">&nbsp;</div>
+      <div class="toc-row" onclick="navigate('about',9,'About')">
+        <span class="toc-roman">vii.</span><span class="toc-name">About</span>
+        <span class="toc-dots"></span><span class="toc-pg">9</span>
+      </div>
+      <div class="toc-row" onclick="navigate('skills',10,'Skills')">
+        <span class="toc-roman">viii.</span><span class="toc-name">Skills</span>
+        <span class="toc-dots"></span><span class="toc-pg">10</span>
+      </div>
     </div>
-    <div class="nav-item" onclick="show('uwlab')">
-      <span class="bracket">[ ]</span><span class="nav-label">UW RESEARCH LAB</span>
+
+    <div class="page-footer">
+      <a href="https://substack.com/@spencerdionisio" target="_blank" class="foot-link">Substack ↗</a>
+      <a href="https://www.linkedin.com/in/spencer-dionisio" target="_blank" class="foot-link">LinkedIn ↗</a>
     </div>
   </div>
 
-  <div class="nav-group">
-    <div class="nav-category">/PROJECTS</div>
-    <div class="nav-item" onclick="show('lunar')">
-      <span class="bracket">[ ]</span><span class="nav-label">LUNAR TREAD TEST</span>
-    </div>
-    <div class="nav-item" onclick="show('eshabot')">
-      <span class="bracket">[ ]</span><span class="nav-label">ESHABOT</span>
-    </div>
-    <div class="nav-item" onclick="show('inventory')">
-      <span class="bracket">[ ]</span><span class="nav-label">INVENTORY TRACKER</span>
-    </div>
-  </div>
+  <!-- ══════════════════════════ RIGHT PAGE ══════════════════════════ -->
+  <div id="right-page">
 
-  <div class="nav-group">
-    <div class="nav-category">/INFO</div>
-    <div class="nav-item" onclick="show('about')">
-      <span class="bracket">[ ]</span><span class="nav-label">ABOUT</span>
-    </div>
-    <div class="nav-item" onclick="show('skills')">
-      <span class="bracket">[ ]</span><span class="nav-label">SKILLS</span>
-    </div>
-  </div>
+    <!-- LAYER B — incoming page (always underneath, fully visible) -->
+    <div id="page-b" class="rpage paper"></div>
 
-  <div id="sidebar-foot">
-    <div class="nav-item" onclick="window.open('Spencer_Dionisio_Resume.pdf','_blank')">
-      <span class="bracket">[↗]</span><span class="nav-label">RESUME</span>
-    </div>
-    <div class="nav-item" onclick="window.open('https://www.linkedin.com/in/spencer-dionisio','_blank')">
-      <span class="bracket">[↗]</span><span class="nav-label">LINKEDIN</span>
-    </div>
-  </div>
-
-</nav>
-
-<!-- ════════════════════════════ MAIN ════════════════════════════ -->
-<div id="main">
-<div id="content">
-
-  <!-- HOME -->
-  <div id="sec-home" class="section">
-    <div id="home-wrap">
-      <div id="home-text">
-        <div class="sec-eyebrow">Mechanical Engineering 3A · University of Waterloo</div>
-        <div class="sec-title">SPENCER DIONISIO</div>
-        <p class="home-tagline">
-          I design systems that have to be right the first time —<br>
-          from hospital HVAC to lunar test rigs.
-        </p>
-        <p class="home-sub">
-          Three co-op terms across healthcare infrastructure, nuclear automation,
-          and space research. I close the gap between design intent and real-world delivery,
-          whether coordinating 300+ pipe segments in Revit or eliminating a full employee
-          equivalent in process waste.
-        </p>
-        <div class="stat-row">
-          <div class="stat">
-            <div class="stat-num">500+</div>
-            <div class="stat-lbl">Clashes Resolved</div>
-          </div>
-          <div class="stat">
-            <div class="stat-num">11%</div>
-            <div class="stat-lbl">Budget Hours Saved</div>
-          </div>
-          <div class="stat">
-            <div class="stat-num">3</div>
-            <div class="stat-lbl">Co-op Terms</div>
-          </div>
-          <div class="stat">
-            <div class="stat-num">1/6g</div>
-            <div class="stat-lbl">Tested In</div>
-          </div>
+    <!-- LAYER A — outgoing page (on top, peels away) -->
+    <div id="page-a" class="rpage paper">
+      <div class="page-header">
+        <span class="hdr-num"></span>
+        <span class="hdr-title" data-field="title">Introduction</span>
+        <span class="hdr-num r" data-field="pnum">1</span>
+      </div>
+      <div class="content-scroll">
+        <!-- All sections live here; JS shows the active one -->
+        <div id="sec-home" class="sec active">
+          <div class="ch-eyebrow">Mechanical Engineering 3A &middot; University of Waterloo</div>
+          <div class="ch-title">Spencer Dionisio</div>
+          <hr class="ch-rule">
+          <p class="body-p no-indent drop-cap">I am a mechanical engineering co-op student at the University of Waterloo, with hands-on experience across healthcare infrastructure, nuclear process improvement, and aerospace research.</p>
+          <p class="body-p">At HH Angus &amp; Associates, I delivered HVAC and plumbing design for two of Canada's largest hospital developments, coordinating hundreds of pipe segments across tight, multi-discipline project schedules. At ATS Industrial Automation, I built process automation tools that reduced electrical team wasted time from twelve per cent to one on live nuclear projects. At the UW Emerging Energy Lab, I designed test hardware and flew aboard a parabolic flight aircraft simulating lunar gravity at one-sixth&nbsp;g.</p>
+          <p class="body-p">I work well under real project pressure, take ownership of complex deliverables, and communicate clearly across disciplines. Navigate the table of contents to explore my experience and projects, or download my résumé below.</p>
         </div>
-      </div>
-      <div id="home-photo">
-        <img src="photo.jpg" alt="Spencer Dionisio">
-        <div class="photo-caption">MechE 3A · Co-op</div>
-      </div>
-    </div>
-  </div>
 
-  <!-- HH ANGUS -->
-  <div id="sec-hh-angus" class="section">
-    <div class="sec-eyebrow">Experience · Mechanical Design</div>
-    <div class="sec-title">HH ANGUS & ASSOCIATES LTD.</div>
+        <div id="sec-hh-angus" class="sec">
+          <div class="ch-eyebrow">Chapter i &middot; Experience</div>
+          <div class="ch-title">HH Angus &amp; Associates Ltd.</div>
+          <hr class="ch-rule">
+          <div class="role">
+            <div class="role-hd"><span class="role-name">Mechanical Designer</span><span class="role-date">Sept – Dec 2024 &middot; Second Term</span></div>
+            <div class="role-sub">Ottawa New Civic Development &amp; Toronto healthcare infrastructure</div>
+            <ul class="blist">
+              <li>Coordinated 6 piping systems across 8 floors in Revit with zero collisions, validated by flow and pressure calculations across 300+ pipe segments</li>
+              <li>Resolved 50+ multidisciplinary coordination issues through zoning overlays and Bluebeam markup, preserving design intent across consultant reviews</li>
+              <li>Managed weekly release of 400+ mechanical drawings, maintaining model consistency and submission deadlines</li>
+              <li>Mapped HVAC zones and 50+ shaft cores across tower plans; converted AutoCAD schematics into Revit</li>
+            </ul>
+          </div>
+          <div class="ornament">* * *</div>
+          <div class="role">
+            <div class="role-hd"><span class="role-name">Mechanical Designer</span><span class="role-date">Jan – Apr 2024 &middot; First Term</span></div>
+            <div class="role-sub">TWH New Patient Tower, Toronto</div>
+            <ul class="blist">
+              <li>Designed full plumbing layouts (HW, CW, HWR, urea drainage) across floors 4–7, resolving 500+ collisions for spatially efficient, code-compliant systems</li>
+              <li>Audited 200+ fixtures for label and size accuracy; tagged 300+ based on cutsheets and consultant markups</li>
+              <li>Performed HAP load estimations to validate mechanical sizing during early-stage design</li>
+            </ul>
+          </div>
+          <div class="tools">Revit &middot; AutoCAD &middot; Bluebeam Revu &middot; HAP</div>
+        </div>
 
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Mechanical Designer</span>
-        <span class="card-date">Sept – Dec 2024 &nbsp;·&nbsp; Second Term</span>
-      </div>
-      <div class="card-tagline">Ottawa New Civic Development + Toronto healthcare — HVAC &amp; plumbing</div>
-      <ul class="blist">
-        <li>Coordinated 6 piping systems across 8 floors in Revit with zero collisions, validated by flow and pressure calculations across 300+ pipe segments</li>
-        <li>Resolved 50+ multidisciplinary coordination issues through zoning overlays and Bluebeam markup, preserving design intent across consultant reviews</li>
-        <li>Managed weekly release of 400+ mechanical drawings, maintaining model consistency and submission deadlines</li>
-        <li>Mapped HVAC zones and 50+ shaft cores across tower plans, coordinating structural and service access</li>
-        <li>Laid out HVAC piping across 5 floors including full mechanical floor; converted AutoCAD schematics into Revit</li>
-      </ul>
-      <div class="tools-line">Revit · AutoCAD · Bluebeam Revu · HAP</div>
-    </div>
+        <div id="sec-ats" class="sec">
+          <div class="ch-eyebrow">Chapter ii &middot; Experience</div>
+          <div class="ch-title">ATS Industrial Automation</div>
+          <hr class="ch-rule">
+          <div class="role">
+            <div class="role-hd"><span class="role-name">Manufacturing Process Analyst</span><span class="role-date">Jan – Apr 2026</span></div>
+            <div class="role-sub">Process improvement across 5+ concurrent nuclear projects</div>
+            <ul class="blist">
+              <li>Built and deployed a Power Apps and Power Automate inventory control system, reducing electrical team wasted time from 12% to 1% and saving 11% of budget hours</li>
+              <li>Applied Kaizen methodology to audit labour hours and manual requisitions, identifying a 40% resource imbalance</li>
+              <li>Eliminated one full employee equivalent in budgeted hours through automation and process redesign</li>
+              <li>Conducted process audits with leads across 6 teams to validate findings and drive adoption</li>
+            </ul>
+          </div>
+          <div class="tools">Power Apps &middot; Power Automate &middot; SharePoint &middot; Excel VBA &middot; Microsoft Forms &middot; Kaizen</div>
+        </div>
 
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Mechanical Designer</span>
-        <span class="card-date">Jan – Apr 2024 &nbsp;·&nbsp; First Term</span>
-      </div>
-      <div class="card-tagline">TWH New Patient Tower, Toronto — plumbing design across surgical and critical care floors</div>
-      <ul class="blist">
-        <li>Designed full plumbing layouts (HW, CW, HWR, urea drainage) across floors 4–7, resolving 500+ collisions for spatially efficient, code-compliant systems</li>
-        <li>Audited 200+ fixtures for label and size accuracy; tagged 300+ based on cutsheets and consultant markups</li>
-        <li>Scheduled 300+ mechanical units against engineering cutsheets and performed HAP load estimations to validate mechanical sizing during early-stage design</li>
-        <li>Cleared all QA flags pre-submission — zero rework and fast consultant approval</li>
-      </ul>
-      <div class="tools-line">Revit · AutoCAD · Bluebeam Revu · HAP</div>
-    </div>
-  </div>
+        <div id="sec-uwlab" class="sec">
+          <div class="ch-eyebrow">Chapter iii &middot; Experience</div>
+          <div class="ch-title">UW Emerging Energy Research Lab</div>
+          <hr class="ch-rule">
+          <div class="role">
+            <div class="role-hd"><span class="role-name">Research Engineer</span><span class="role-date">May 2025 – Present</span></div>
+            <div class="role-sub">Lunar wheel traction and regolith research &middot; parabolic flight tested</div>
+            <ul class="blist">
+              <li>Designed and modelled a single-wheel test rig and adjustable incline ramp in SolidWorks to evaluate lunar wheel tread performance on slopes exceeding 35°</li>
+              <li>Contributed to the design of 3 lunar regolith grinding systems</li>
+              <li>Executed live system testing aboard a parabolic flight aircraft simulating lunar gravity at 1/6g, collecting regolith behaviour data for academic research and space mission applications</li>
+              <li>Modelled historic wheel behaviour using Bekker's pressure-sinkage equations; developing data workflow for tread displacement measurement with planned LiDAR integration</li>
+            </ul>
+          </div>
+          <div class="tools">SolidWorks &middot; MATLAB &middot; Bekker terramechanics &middot; LiDAR (planned)</div>
+        </div>
 
-  <!-- ATS -->
-  <div id="sec-ats" class="section">
-    <div class="sec-eyebrow">Experience · Process Engineering</div>
-    <div class="sec-title">ATS INDUSTRIAL AUTOMATION</div>
+        <div id="sec-lunar" class="sec">
+          <div class="ch-eyebrow">Chapter iv &middot; Projects</div>
+          <div class="ch-title">Lunar Tread Testing Rig</div>
+          <hr class="ch-rule">
+          <div class="sub-lbl">What</div>
+          <ul class="blist">
+            <li>Physical testing system to benchmark lunar wheel traction on slopes exceeding 35°</li>
+            <li>Scalable adjustable ramp with linear rail design simulating reduced-gravity wheel-ground interaction</li>
+          </ul>
+          <div class="sub-lbl">How</div>
+          <ul class="blist">
+            <li>Modelled historic wheel behaviour using Bekker's pressure-sinkage equations to estimate tread performance</li>
+            <li>Used lunar terrain characteristics and mobility data to guide ramp angle, loading, and tread design</li>
+            <li>Developed data workflow for tread displacement measurement; LiDAR integration planned</li>
+          </ul>
+          <div class="sub-lbl">Results</div>
+          <ul class="blist">
+            <li>Fully fabricated ramp and rail base with verified structural alignment and motion system reliability</li>
+            <li>Validated method for terrain-wheel interaction simulation based on historic rover models</li>
+            <li>Infrastructure complete — physical testing phase ready to launch</li>
+          </ul>
+          <div class="tools">SolidWorks &middot; MATLAB &middot; Bekker equations &middot; LiDAR (planned)</div>
+        </div>
 
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Manufacturing Process Analyst</span>
-        <span class="card-date">Jan – Apr 2026</span>
-      </div>
-      <div class="card-tagline">Process improvement and systems development across 5+ concurrent nuclear projects</div>
-      <ul class="blist">
-        <li>Built and deployed a Power Apps + Power Automate inventory control system, reducing electrical team wasted time from 12% to 1% and saving 11% of budget hours</li>
-        <li>Applied Kaizen methodology to audit labour hours and manual requisitions — identified a 40% resource imbalance</li>
-        <li>Eliminated one full employee equivalent in budgeted hours through automation and process redesign</li>
-        <li>Conducted process audits with leads across 6 teams to validate findings and drive adoption</li>
-      </ul>
-      <div class="tools-line">Power Apps · Power Automate · SharePoint · Excel VBA · Microsoft Forms · Kaizen</div>
-    </div>
-  </div>
+        <div id="sec-eshabot" class="sec">
+          <div class="ch-eyebrow">Chapter v &middot; Projects</div>
+          <div class="ch-title">ESHAbot — Autonomous Seed-Planting Robot</div>
+          <hr class="ch-rule">
+          <div class="sub-lbl">What</div>
+          <ul class="blist">
+            <li>Fully autonomous robot capable of navigating and planting seeds within a field grid</li>
+            <li>ME101 Capstone — led a 4-member team end-to-end through design, build, and systems integration</li>
+          </ul>
+          <div class="sub-lbl">How</div>
+          <ul class="blist">
+            <li>CAD-modelled the chassis and feeder system in SolidWorks, optimising for structural rigidity and consistent seed delivery</li>
+            <li>Fabricated hardware from raw materials using lathe, mill, and drill press</li>
+            <li>Coded and wired the seed hopper in RobotC, ensuring reliable actuation and compatibility with full robot logic</li>
+          </ul>
+          <div class="sub-lbl">Results</div>
+          <ul class="blist">
+            <li>Consistent seeding performance in live demonstrations under time and part constraints</li>
+            <li>Prioritised simplicity and reliability over complexity — a robust, field-ready unit</li>
+          </ul>
+          <div class="tools">SolidWorks &middot; RobotC &middot; Fabrication shop</div>
+        </div>
 
-  <!-- UW LAB -->
-  <div id="sec-uwlab" class="section">
-    <div class="sec-eyebrow">Experience · Research</div>
-    <div class="sec-title">UW EMERGING ENERGY RESEARCH LAB</div>
+        <div id="sec-inventory" class="sec">
+          <div class="ch-eyebrow">Chapter vi &middot; Projects</div>
+          <div class="ch-title">Inventory Tracking Application</div>
+          <hr class="ch-rule">
+          <div class="sub-lbl">What</div>
+          <ul class="blist">
+            <li>End-to-end inventory control system deployed across 5+ concurrent nuclear projects at ATS Industrial Automation</li>
+            <li>Built across Microsoft Forms, SharePoint, Power Apps, Power Automate, and Excel VBA</li>
+          </ul>
+          <div class="sub-lbl">How</div>
+          <ul class="blist">
+            <li>Manually analysed requisition records to identify critical wire shortages; prototyped a tracking tool in Excel VBA</li>
+            <li>Migrated to a scaleable Power Apps interface connected to a SharePoint list via Power Automate, automating inventory updates and team notifications</li>
+            <li>Conducted Kaizen-based process audits with team leads across 6 teams to validate findings and drive adoption</li>
+          </ul>
+          <div class="sub-lbl">Results</div>
+          <ul class="blist">
+            <li>Reduced electrical team wasted time from 12% to 1%</li>
+            <li>Saved 11% of total electrical budget hours through process redesign</li>
+            <li>Eliminated one full employee equivalent in budgeted hours through automation</li>
+          </ul>
+          <div class="tools">Power Apps &middot; Power Automate &middot; SharePoint &middot; Excel VBA &middot; Microsoft Forms</div>
+        </div>
 
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Research Engineer</span>
-        <span class="card-date">May 2025 – Present</span>
-      </div>
-      <div class="card-tagline">Lunar wheel traction and regolith grinding research — parabolic flight tested</div>
-      <ul class="blist">
-        <li>Designed and modeled a single-wheel test rig and adjustable incline ramp in SolidWorks to evaluate lunar wheel tread performance on slopes &gt;35°</li>
-        <li>Contributed to design of 3 lunar regolith grinding systems</li>
-        <li>Executed live system testing aboard a parabolic flight aircraft simulating lunar gravity (1/6g), collecting regolith behavior data for academic research and space mission applications</li>
-        <li>Modeled historic wheel behavior using Bekker's pressure-sinkage equations to estimate tread performance</li>
-        <li>Developing data workflow for tread displacement measurement — LiDAR integration planned</li>
-      </ul>
-      <div class="tools-line">SolidWorks · MATLAB · Bekker terramechanics · LiDAR (planned)</div>
-    </div>
-  </div>
+        <div id="sec-about" class="sec">
+          <div class="ch-eyebrow">Chapter vii</div>
+          <div class="ch-title">About</div>
+          <hr class="ch-rule">
+          <p class="about-p first">I thrive at the intersection of hands-on problem solving, quiet leadership, and human connection. Whether in the shop, on the ice, or guiding a team through a design challenge, I bring calm focus, attention to detail, and the ability to rally others around a common goal.</p>
+          <p class="about-p">Playing high-level competitive hockey taught me discipline, adaptability, and how to stay composed under pressure. I carry those lessons into engineering and team dynamics alike.</p>
+          <p class="about-p">I helped lead a six-person research team through the Global Ideas Institute — a province-wide initiative to improve youth sleep habits. I led research and interviews, contributed to weekly group discussions, and delivered a pitch to professional judges at the Munk School of Global Affairs.</p>
+          <p class="about-p">I have spent six years as a youth skating coach and group instructor, teaching complex skills to beginners while maintaining an inclusive and encouraging environment.</p>
+          <p class="about-p">I value being dependable, curious, and collaborative. I take pride in solving hard problems and making sure the work reflects care — not just for the outcome, but for the people involved along the way.</p>
+        </div>
 
-  <!-- LUNAR -->
-  <div id="sec-lunar" class="section">
-    <div class="sec-eyebrow">Project · Mechanical Design</div>
-    <div class="sec-title">LUNAR TREAD TESTING RIG</div>
-    <div class="proj-grid">
-      <div>
-        <div class="proj-col-head">What</div>
-        <ul class="blist">
-          <li>Physical testing system to benchmark lunar wheel traction on slopes &gt;35°</li>
-          <li>Scalable adjustable ramp with linear rail design simulating reduced-gravity wheel-ground interaction</li>
-        </ul>
-      </div>
-      <div>
-        <div class="proj-col-head">How</div>
-        <ul class="blist">
-          <li>Modeled historic wheel behavior using Bekker's pressure-sinkage equations</li>
-          <li>Used lunar terrain and mobility data to guide ramp angle, loading, and tread design</li>
-          <li>Developed data workflow for tread displacement measurement</li>
-          <li>Planning LiDAR integration for tread-depth analysis</li>
-        </ul>
-      </div>
-      <div>
-        <div class="proj-col-head">Results</div>
-        <ul class="blist">
-          <li>Fully fabricated ramp and rail base — structural alignment and motion reliability verified</li>
-          <li>Validated method for terrain-wheel interaction simulation based on historic rover models</li>
-          <li>Infrastructure complete — physical testing phase ready to launch</li>
-        </ul>
-      </div>
-    </div>
-    <div class="tools-line">SolidWorks · MATLAB · Bekker equations · LiDAR (planned)</div>
-  </div>
+        <div id="sec-skills" class="sec">
+          <div class="ch-eyebrow">Chapter viii</div>
+          <div class="ch-title">Skills</div>
+          <hr class="ch-rule">
+          <div class="skill-g"><div class="skill-lbl">Design &amp; Engineering</div><div class="skill-val">SolidWorks &middot; Revit &middot; AutoCAD &middot; Bluebeam Revu &middot; GD&amp;T &middot; Schematic Reading</div></div>
+          <div class="skill-g"><div class="skill-lbl">Programming</div><div class="skill-val">Python &middot; MATLAB &middot; C++ &middot; Java &middot; RobotC &middot; Excel VBA</div></div>
+          <div class="skill-g"><div class="skill-lbl">Systems &amp; Automation</div><div class="skill-val">Power Automate &middot; Power Apps &middot; SharePoint &middot; Microsoft Forms</div></div>
+          <div class="skill-g"><div class="skill-lbl">Fabrication</div><div class="skill-val">Lathe &middot; Mill &middot; Drill Press &middot; Bandsaw &middot; 3D Printing</div></div>
+          <div class="skill-g"><div class="skill-lbl">Methods</div><div class="skill-val">Kaizen &middot; Bekker Terramechanics &middot; HAP Load Estimation &middot; Flow &amp; Pressure Analysis</div></div>
+        </div>
+      </div><!-- .content-scroll -->
 
-  <!-- ESHABOT -->
-  <div id="sec-eshabot" class="section">
-    <div class="sec-eyebrow">Project · Robotics &amp; CAD</div>
-    <div class="sec-title">ESHABOT — AUTONOMOUS SEED-PLANTING ROBOT</div>
-    <div class="proj-grid">
-      <div>
-        <div class="proj-col-head">What</div>
-        <ul class="blist">
-          <li>Fully autonomous robot capable of navigating and planting seeds within a field grid</li>
-          <li>ME101 Capstone — led 4-member team end-to-end through design, build, and integration</li>
-        </ul>
+      <div class="page-footer">
+        <a href="mailto:sadionis@uwaterloo.ca" class="foot-link">sadionis@uwaterloo.ca</a>
+        <a href="Spencer_Dionisio_Resume.pdf" target="_blank" class="foot-link">Résumé ↗</a>
+        <span class="foot-num" data-field="pnum">1</span>
       </div>
-      <div>
-        <div class="proj-col-head">How</div>
-        <ul class="blist">
-          <li>CAD-modeled chassis and feeder system in SolidWorks, optimizing for structural rigidity and consistent seed delivery</li>
-          <li>Fabricated hardware from raw materials</li>
-          <li>Coded and wired the seed hopper in RobotC for reliable actuation and compatibility with full robot logic</li>
-        </ul>
-      </div>
-      <div>
-        <div class="proj-col-head">Results</div>
-        <ul class="blist">
-          <li>Consistent seeding performance in live demos under time and part constraints</li>
-          <li>Robust, field-ready unit — prioritized simplicity and reliability over complexity</li>
-        </ul>
-      </div>
-    </div>
-    <div class="tools-line">SolidWorks · RobotC · Fabrication shop (lathe, mill, drill press)</div>
-  </div>
+    </div><!-- #page-a -->
 
-  <!-- INVENTORY -->
-  <div id="sec-inventory" class="section">
-    <div class="sec-eyebrow">Project · Systems Development</div>
-    <div class="sec-title">INVENTORY TRACKING APP</div>
-    <div class="proj-grid">
-      <div>
-        <div class="proj-col-head">What</div>
-        <ul class="blist">
-          <li>End-to-end inventory control system spanning 5+ concurrent nuclear projects at ATS</li>
-          <li>Built across Forms, SharePoint, Power Apps, Power Automate, and Excel VBA</li>
-        </ul>
-      </div>
-      <div>
-        <div class="proj-col-head">How</div>
-        <ul class="blist">
-          <li>Identified supply chain inefficiencies via manual requisition analysis — prototyped in Excel VBA</li>
-          <li>Migrated to scaleable Power Apps + SharePoint + Power Automate pipeline</li>
-          <li>Kaizen-based audits with leads across 6 teams to validate findings and drive adoption</li>
-        </ul>
-      </div>
-      <div>
-        <div class="proj-col-head">Results</div>
-        <ul class="blist">
-          <li>Wasted time: 12% → 1%</li>
-          <li>11% of total electrical budget hours saved</li>
-          <li>Eliminated one full employee equivalent in budgeted hours</li>
-        </ul>
-      </div>
-    </div>
-    <div class="tools-line">Power Apps · Power Automate · SharePoint · Excel VBA · Microsoft Forms</div>
-  </div>
+    <!-- Curl flap: back-of-page drawn over both layers during the peel -->
+    <div id="curl-flap"></div>
 
-  <!-- ABOUT -->
-  <div id="sec-about" class="section">
-    <div class="sec-eyebrow">Info</div>
-    <div class="sec-title">ABOUT</div>
-    <div class="about-body">
-      <p>I thrive at the intersection of hands-on problem solving, quiet leadership, and human connection. Whether in the shop, on the ice, or guiding a team through a design challenge — I bring calm focus, attention to detail, and the ability to rally others around a common goal.</p>
-      <p>Playing high-level competitive hockey taught me discipline, adaptability, and how to stay composed under pressure. I carry those lessons into engineering and team dynamics alike.</p>
-      <p>I helped lead a six-person research team through the Global Ideas Institute — a province-wide initiative to improve youth sleep habits. I led research and interviews, contributed to weekly group discussions, and delivered a pitch to professional judges at the Munk School of Global Affairs.</p>
-      <p>I've spent six years as a youth skating coach and group instructor, teaching complex skills to beginners while maintaining an inclusive and encouraging environment.</p>
-      <p>I value being dependable, curious, and collaborative. I take pride in solving hard problems — and making sure the work reflects care, not just for the outcome, but for the people involved along the way.</p>
-    </div>
-  </div>
+    <!-- Permanent spine shadow: always on top -->
+    <div id="spine-shadow"></div>
 
-  <!-- SKILLS -->
-  <div id="sec-skills" class="section">
-    <div class="sec-eyebrow">Info</div>
-    <div class="sec-title">SKILLS</div>
-
-    <div class="skill-group">
-      <div class="skill-group-head">Design &amp; Engineering</div>
-      <div class="skill-tags">
-        <span class="tag">SolidWorks</span>
-        <span class="tag">Revit</span>
-        <span class="tag">AutoCAD</span>
-        <span class="tag">Bluebeam Revu</span>
-        <span class="tag">GD&amp;T</span>
-        <span class="tag">Schematic Reading</span>
-      </div>
-    </div>
-
-    <div class="skill-group">
-      <div class="skill-group-head">Programming</div>
-      <div class="skill-tags">
-        <span class="tag">Python</span>
-        <span class="tag">MATLAB</span>
-        <span class="tag">C++</span>
-        <span class="tag">Java</span>
-        <span class="tag">RobotC</span>
-        <span class="tag">Excel VBA</span>
-      </div>
-    </div>
-
-    <div class="skill-group">
-      <div class="skill-group-head">Systems &amp; Automation</div>
-      <div class="skill-tags">
-        <span class="tag">Power Automate</span>
-        <span class="tag">Power Apps</span>
-        <span class="tag">SharePoint</span>
-        <span class="tag">Microsoft Forms</span>
-      </div>
-    </div>
-
-    <div class="skill-group">
-      <div class="skill-group-head">Fabrication</div>
-      <div class="skill-tags">
-        <span class="tag">Lathe</span>
-        <span class="tag">Mill</span>
-        <span class="tag">Drill Press</span>
-        <span class="tag">Bandsaw</span>
-        <span class="tag">3D Printing</span>
-      </div>
-    </div>
-
-    <div class="skill-group">
-      <div class="skill-group-head">Methods</div>
-      <div class="skill-tags">
-        <span class="tag">Kaizen</span>
-        <span class="tag">Bekker Terramechanics</span>
-        <span class="tag">HAP Load Estimation</span>
-        <span class="tag">Flow &amp; Pressure Analysis</span>
-      </div>
-    </div>
-  </div>
-
-</div><!-- #content -->
-
-<!-- CONTACT FOOTER -->
-<footer id="contact">
-  <a href="tel:6475314747">(647) 531-4747</a>
-  <a href="mailto:sadionis@uwaterloo.ca">sadionis@uwaterloo.ca</a>
-  <a href="https://www.linkedin.com/in/spencer-dionisio" target="_blank">LinkedIn ↗</a>
-  <span>University of Waterloo · Mechanical Engineering 3A</span>
-</footer>
-</div><!-- #main -->
+  </div><!-- #right-page -->
+</div><!-- #book -->
 
 <script>
+  /* ═══════════════════════════════════════════════════════════
+     STATE
+  ═══════════════════════════════════════════════════════════ */
   const SECTIONS = ['home','hh-angus','ats','uwlab','lunar','eshabot','inventory','about','skills'];
+  let currentId    = 'home';
+  let busy         = false;
+  let activeLayer  = 'a';   // 'a' or 'b' — whichever is currently on top (z-index 10)
 
-  function show(id) {
-    SECTIONS.forEach(s => {
-      document.getElementById('sec-' + s).classList.toggle('active', s === id);
+  /* ═══════════════════════════════════════════════════════════
+     EASING
+  ═══════════════════════════════════════════════════════════ */
+  // Smooth-step (ease-in-out cubic)
+  const ease = t => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
+
+  /* ═══════════════════════════════════════════════════════════
+     WRITE CONTENT INTO A PAGE LAYER
+     - finds the chrome fields via data-field attributes
+     - shows/hides sections within that layer's content-scroll
+  ═══════════════════════════════════════════════════════════ */
+  function writeLayer(layerId, sectionId, pageNum, title) {
+    const layer = document.getElementById('page-' + layerId);
+
+    // Update running header + footer
+    layer.querySelectorAll('[data-field="title"]').forEach(el => el.textContent = title);
+    layer.querySelectorAll('[data-field="pnum"]').forEach(el  => el.textContent = pageNum);
+
+    // Show the right section, hide the rest
+    SECTIONS.forEach(k => {
+      const el = layer.querySelector('#sec-' + k);
+      if (el) el.classList.toggle('active', k === sectionId);
     });
 
-    document.querySelectorAll('.nav-item').forEach(item => {
-      const fn = item.getAttribute('onclick') || '';
-      const isActive = fn.includes("'" + id + "'");
-      item.classList.toggle('active', isActive);
-      const b = item.querySelector('.bracket');
-      if (!b) return;
-      if (b.textContent === '[↗]') return; // don't touch external links
-      b.textContent = isActive ? '[*]' : '[ ]';
-    });
-
-    document.getElementById('content').scrollTop = 0;
+    layer.querySelector('.content-scroll').scrollTop = 0;
   }
 
-  show('home');
+  /* ═══════════════════════════════════════════════════════════
+     DUPLICATE SECTION HTML INTO LAYER B
+     Layer A already has all sections in the source HTML.
+     Layer B starts empty; we clone the section nodes into it
+     on first use and keep it in sync thereafter.
+  ═══════════════════════════════════════════════════════════ */
+  function ensureLayerB() {
+    const layerB = document.getElementById('page-b');
+    if (layerB.querySelector('.content-scroll')) return; // already built
+
+    // Clone page-a's chrome structure into page-b
+    const layerA = document.getElementById('page-a');
+    layerB.innerHTML = layerA.innerHTML;
+
+    // Give cloned sections unique IDs to avoid conflicts
+    SECTIONS.forEach(k => {
+      const el = layerB.querySelector('#sec-' + k);
+      if (el) el.id = 'b-sec-' + k;
+    });
+
+    // Now fix writeLayer so it queries by the right id prefix per layer
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     REVISED writeLayer — works with both layers
+  ═══════════════════════════════════════════════════════════ */
+  function writeLayerFull(layerId, sectionId, pageNum, title) {
+    const layer  = document.getElementById('page-' + layerId);
+    const prefix = layerId === 'a' ? 'sec-' : 'b-sec-';
+
+    layer.querySelectorAll('[data-field="title"]').forEach(el => el.textContent = title);
+    layer.querySelectorAll('[data-field="pnum"]').forEach(el  => el.textContent = pageNum);
+
+    SECTIONS.forEach(k => {
+      const el = layer.querySelector('#' + prefix + k);
+      if (el) el.classList.toggle('active', k === sectionId);
+    });
+
+    const scroll = layer.querySelector('.content-scroll');
+    if (scroll) scroll.scrollTop = 0;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     NAVIGATE — main entry point
+  ═══════════════════════════════════════════════════════════ */
+  function navigate(rawId, pageNum, title) {
+    // Decode HTML entities in title for display
+    const div = document.createElement('div');
+    div.innerHTML = title;
+    const cleanTitle = div.textContent;
+
+    if (busy || rawId === currentId) { closeTOC(); return; }
+    busy = true;
+    closeTOC();
+
+    ensureLayerB();
+
+    const outId  = activeLayer;           // layer going away (peels off)
+    const inId   = outId === 'a' ? 'b' : 'a'; // layer coming in (revealed below)
+
+    const outEl  = document.getElementById('page-' + outId);
+    const inEl   = document.getElementById('page-' + inId);
+    const flap   = document.getElementById('curl-flap');
+    const rp     = document.getElementById('right-page');
+
+    // Pre-load next content into the incoming layer and put it below
+    writeLayerFull(inId, rawId, pageNum, cleanTitle);
+    inEl.style.zIndex  = '1';
+    outEl.style.zIndex = '10';
+
+    // Measure the right-page container (the coordinate space for path())
+    const { width: W, height: H } = rp.getBoundingClientRect();
+
+    const DURATION = 680; // ms
+    let t0 = null;
+
+    function frame(ts) {
+      if (!t0) t0 = ts;
+      const raw = Math.min((ts - t0) / DURATION, 1);
+      const p   = ease(raw);
+
+      /* ── Fold line endpoints ──
+         A lives on the RIGHT EDGE and moves UP.
+         B lives on the BOTTOM EDGE and moves LEFT.
+         A leads B slightly so the corner lifts before the full edge follows —
+         this replicates the natural peel physics of flexible paper. */
+      const pA = Math.min(p * 1.1, 1);          // A finishes 10% early
+      const pB = Math.max(p * 1.1 - 0.10, 0);  // B starts 10% late
+
+      const ay = H * (1 - ease(pA));   // right-edge Y (moves up)
+      const bx = W * (1 - ease(pB));   // bottom-edge X (moves left)
+
+      /* ── Quadratic bezier control point ──
+         Pulling the midpoint of AB inward toward the page origin creates
+         a concave curve on the fold — the warp of a flexible page as it peels. */
+      const cpx = ((W + bx) / 2) * 0.68;
+      const cpy = ((ay + H)  / 2) * 0.68;
+
+      /* ── Clip outgoing page to the unpeeled (upper-left) region ── */
+      outEl.style.clipPath =
+        `path('M 0 0 L ${W} 0 L ${W} ${f(ay)} Q ${f(cpx)} ${f(cpy)} ${f(bx)} ${H} L 0 ${H} Z')`;
+
+      /* ── Clip curl flap to the peeled triangle (lower-right) ──
+         This is the complementary region: from A, curving to B, then to corner. */
+      flap.style.clipPath =
+        `path('M ${W} ${f(ay)} L ${W} ${H} L ${f(bx)} ${H} Q ${f(cpx)} ${f(cpy)} ${W} ${f(ay)} Z')`;
+      flap.style.opacity = '1';
+
+      /* ── Dynamic shadow on curl flap ──
+         Grows as the peel progresses (more lift = more shadow depth).
+         The direction (-x, -y) casts the shadow toward the upper-left,
+         landing on the still-visible portion of the outgoing page. */
+      const sOff  = (6  + p * 18).toFixed(0);
+      const sBlur = (10 + p * 26).toFixed(0);
+      const sAlpha = (0.10 + p * 0.22).toFixed(2);
+      flap.style.filter =
+        `drop-shadow(-${sOff}px -${sOff}px ${sBlur}px rgba(0,0,0,${sAlpha}))`;
+
+      /* ── Perspective warp on the curl flap ──
+         rotate3d(1,-1,0) is the diagonal axis of a 45° fold.
+         A small rotation here makes the triangle appear to lift off the surface.
+         We increase the tilt as p grows (more lift at max peel). */
+      const tiltDeg = (p * 12).toFixed(2);
+      flap.style.transform =
+        `perspective(900px) rotate3d(1,-1,0,${tiltDeg}deg)`;
+      flap.style.transformOrigin = `${W}px ${H}px`; // anchor at BR corner
+
+      if (raw < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        finish(outId, inId, rawId, pageNum, cleanTitle);
+      }
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  /* Fixed-point helper — avoids sub-pixel jitter in path strings */
+  function f(n) { return n.toFixed(1); }
+
+  /* ═══════════════════════════════════════════════════════════
+     FINISH — clean up after animation completes
+  ═══════════════════════════════════════════════════════════ */
+  function finish(outId, inId, sectionId, pageNum, title) {
+    const outEl = document.getElementById('page-' + outId);
+    const inEl  = document.getElementById('page-' + inId);
+    const flap  = document.getElementById('curl-flap');
+
+    // Promote the incoming layer to the top
+    inEl.style.zIndex  = '10';
+    outEl.style.zIndex = '1';
+    outEl.style.clipPath = 'none';
+
+    // Reset curl flap
+    flap.style.opacity   = '0';
+    flap.style.clipPath  = 'none';
+    flap.style.filter    = '';
+    flap.style.transform = '';
+
+    // Sync outgoing layer with the new content (so it's ready as the next "back")
+    writeLayerFull(outId, sectionId, pageNum, title);
+
+    activeLayer = inId;
+    currentId   = sectionId;
+    busy        = false;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     MOBILE DRAWER
+  ═══════════════════════════════════════════════════════════ */
+  function openTOC()  {
+    document.getElementById('left-page').classList.add('open');
+    document.getElementById('toc-overlay').classList.add('open');
+  }
+  function closeTOC() {
+    document.getElementById('left-page').classList.remove('open');
+    document.getElementById('toc-overlay').classList.remove('open');
+  }
 </script>
 </body>
 </html>
