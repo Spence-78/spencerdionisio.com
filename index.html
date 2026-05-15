@@ -72,22 +72,24 @@
     #page-b { z-index:1;  }
     #page-a { z-index:10; }
 
-    /* Back-of-page gradient on the curl flap.
-       Fold-line edge (top-left of triangle) = darkest: shadow of the bend.
-       Free corner (bottom-right) = slightly lighter but still warm.          */
+    /* Narrow strip showing the back/underside of the peeling page at the fold crease */
     #curl-flap {
       position:absolute; inset:0; z-index:20;
-      background:
-        linear-gradient(
-          135deg,
-          rgba(172,152,114,0.99)  0%,
-          rgba(200,180,142,0.97) 18%,
-          rgba(224,206,170,0.94) 45%,
-          rgba(238,220,188,0.91) 72%,
-          rgba(228,210,178,0.88) 100%
-        );
+      background: linear-gradient(
+        45deg,
+        rgba(210,195,165,0.97) 0%,
+        rgba(230,215,188,0.95) 40%,
+        rgba(245,232,210,0.93) 100%
+      );
       opacity:0; pointer-events:none;
-      will-change:clip-path, filter, opacity;
+      will-change:clip-path, opacity;
+    }
+
+    /* Shadow cast on the remaining unpeeled page near the fold line */
+    #fold-shadow {
+      position:absolute; inset:0; z-index:11;
+      opacity:0; pointer-events:none;
+      will-change:clip-path, opacity;
     }
 
     /* Permanent spine shadow */
@@ -224,29 +226,29 @@
       <div class="toc-h">Table of Contents</div>
 
       <div class="toc-group">Experience</div>
-      <div class="toc-row" onclick="navigate('hh-angus',2,'HH Angus &amp; Associates')">
+      <div class="toc-row" onclick="navigate('hh-angus',2,'Experience')">
         <span class="toc-roman">i.</span><span class="toc-name">HH Angus &amp; Associates</span>
         <span class="toc-dots"></span><span class="toc-pg">2</span>
       </div>
-      <div class="toc-row" onclick="navigate('ats',4,'ATS Industrial Automation')">
+      <div class="toc-row" onclick="navigate('ats',4,'Experience')">
         <span class="toc-roman">ii.</span><span class="toc-name">ATS Industrial Automation</span>
         <span class="toc-dots"></span><span class="toc-pg">4</span>
       </div>
-      <div class="toc-row" onclick="navigate('uwlab',5,'UW Research Lab')">
+      <div class="toc-row" onclick="navigate('uwlab',5,'Experience')">
         <span class="toc-roman">iii.</span><span class="toc-name">UW Research Lab</span>
         <span class="toc-dots"></span><span class="toc-pg">5</span>
       </div>
 
       <div class="toc-group">Projects</div>
-      <div class="toc-row" onclick="navigate('lunar',6,'Lunar Tread Testing Rig')">
+      <div class="toc-row" onclick="navigate('lunar',6,'Projects')">
         <span class="toc-roman">iv.</span><span class="toc-name">Lunar Tread Testing Rig</span>
         <span class="toc-dots"></span><span class="toc-pg">6</span>
       </div>
-      <div class="toc-row" onclick="navigate('eshabot',7,'ESHAbot')">
-        <span class="toc-roman">v.</span><span class="toc-name">ESHAbot</span>
+      <div class="toc-row" onclick="navigate('eshabot',7,'Projects')">
+        <span class="toc-roman">v.</span><span class="toc-name">Autonomous Planting Robot</span>
         <span class="toc-dots"></span><span class="toc-pg">7</span>
       </div>
-      <div class="toc-row" onclick="navigate('inventory',8,'Inventory Tracking App')">
+      <div class="toc-row" onclick="navigate('inventory',8,'Projects')">
         <span class="toc-roman">vi.</span><span class="toc-name">Inventory Tracking App</span>
         <span class="toc-dots"></span><span class="toc-pg">8</span>
       </div>
@@ -278,7 +280,7 @@
     <div id="page-a" class="rpage paper">
       <div class="page-header">
         <span class="hdr-num"></span>
-        <span class="hdr-title" data-field="title">Introduction</span>
+        <span class="hdr-title" data-field="title">About Me</span>
         <span class="hdr-num r" data-field="pnum">1</span>
       </div>
       <div class="content-scroll">
@@ -293,7 +295,6 @@
         </div>
 
         <div id="sec-hh-angus" class="sec">
-          <div class="ch-eyebrow">Chapter i &middot; Experience</div>
           <div class="ch-title">HH Angus &amp; Associates Ltd.</div>
           <hr class="ch-rule">
           <div class="role">
@@ -320,7 +321,6 @@
         </div>
 
         <div id="sec-ats" class="sec">
-          <div class="ch-eyebrow">Chapter ii &middot; Experience</div>
           <div class="ch-title">ATS Industrial Automation</div>
           <hr class="ch-rule">
           <div class="role">
@@ -337,7 +337,6 @@
         </div>
 
         <div id="sec-uwlab" class="sec">
-          <div class="ch-eyebrow">Chapter iii &middot; Experience</div>
           <div class="ch-title">UW Emerging Energy Research Lab</div>
           <hr class="ch-rule">
           <div class="role">
@@ -354,7 +353,6 @@
         </div>
 
         <div id="sec-lunar" class="sec">
-          <div class="ch-eyebrow">Chapter iv &middot; Projects</div>
           <div class="ch-title">Lunar Tread Testing Rig</div>
           <hr class="ch-rule">
           <div class="sub-lbl">What</div>
@@ -378,8 +376,7 @@
         </div>
 
         <div id="sec-eshabot" class="sec">
-          <div class="ch-eyebrow">Chapter v &middot; Projects</div>
-          <div class="ch-title">ESHAbot — Autonomous Seed-Planting Robot</div>
+          <div class="ch-title">Autonomous Seed-Planting Robot</div>
           <hr class="ch-rule">
           <div class="sub-lbl">What</div>
           <ul class="blist">
@@ -401,7 +398,6 @@
         </div>
 
         <div id="sec-inventory" class="sec">
-          <div class="ch-eyebrow">Chapter vi &middot; Projects</div>
           <div class="ch-title">Inventory Tracking Application</div>
           <hr class="ch-rule">
           <div class="sub-lbl">What</div>
@@ -425,9 +421,7 @@
         </div>
 
         <div id="sec-about" class="sec">
-          <div class="ch-eyebrow">Chapter vii</div>
-          <div class="ch-title">About</div>
-          <hr class="ch-rule">
+          <hr class="ch-rule" style="margin-top:0;">
           <p class="about-p first">I thrive at the intersection of hands-on problem solving, quiet leadership, and human connection. Whether in the shop, on the ice, or guiding a team through a design challenge, I bring calm focus, attention to detail, and the ability to rally others around a common goal.</p>
           <p class="about-p">Playing high-level competitive hockey taught me discipline, adaptability, and how to stay composed under pressure. I carry those lessons into engineering and team dynamics alike.</p>
           <p class="about-p">I helped lead a six-person research team through the Global Ideas Institute — a province-wide initiative to improve youth sleep habits. I led research and interviews, contributed to weekly group discussions, and delivered a pitch to professional judges at the Munk School of Global Affairs.</p>
@@ -436,9 +430,7 @@
         </div>
 
         <div id="sec-skills" class="sec">
-          <div class="ch-eyebrow">Chapter viii</div>
-          <div class="ch-title">Skills</div>
-          <hr class="ch-rule">
+          <hr class="ch-rule" style="margin-top:0;">
           <div class="skill-g"><div class="skill-lbl">Design &amp; Engineering</div><div class="skill-val">SolidWorks &middot; Revit &middot; AutoCAD &middot; Bluebeam Revu &middot; GD&amp;T &middot; Schematic Reading</div></div>
           <div class="skill-g"><div class="skill-lbl">Programming</div><div class="skill-val">Python &middot; MATLAB &middot; C++ &middot; Java &middot; RobotC &middot; Excel VBA</div></div>
           <div class="skill-g"><div class="skill-lbl">Systems &amp; Automation</div><div class="skill-val">Power Automate &middot; Power Apps &middot; SharePoint &middot; Microsoft Forms</div></div>
@@ -454,8 +446,11 @@
       </div>
     </div><!-- #page-a -->
 
-    <!-- Curl flap: back-of-page drawn over both layers during the peel -->
+    <!-- Narrow curl strip shown at the fold line (back of peeling page) -->
     <div id="curl-flap"></div>
+
+    <!-- Darkening shadow cast on the remaining visible page near the fold -->
+    <div id="fold-shadow"></div>
 
     <!-- Permanent spine shadow: always on top -->
     <div id="spine-shadow"></div>
@@ -475,8 +470,8 @@
   /* ═══════════════════════════════════════════════════════════
      EASING
   ═══════════════════════════════════════════════════════════ */
-  // Smooth-step (ease-in-out cubic)
-  const ease = t => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
+  // Cubic ease-out: full speed from frame 1, decelerates into the finish
+  const ease = t => 1 - Math.pow(1 - t, 3);
 
   /* ═══════════════════════════════════════════════════════════
      WRITE CONTENT INTO A PAGE LAYER
@@ -561,8 +556,9 @@
 
     const outEl  = document.getElementById('page-' + outId);
     const inEl   = document.getElementById('page-' + inId);
-    const flap   = document.getElementById('curl-flap');
-    const rp     = document.getElementById('right-page');
+    const flap       = document.getElementById('curl-flap');
+    const foldShadow = document.getElementById('fold-shadow');
+    const rp         = document.getElementById('right-page');
 
     // Pre-load next content into the incoming layer and put it below
     writeLayerFull(inId, rawId, pageNum, cleanTitle);
@@ -572,7 +568,7 @@
     // Measure the right-page container (the coordinate space for path())
     const { width: W, height: H } = rp.getBoundingClientRect();
 
-    const DURATION = 680; // ms
+    const DURATION = 550; // ms
     let t0 = null;
 
     function frame(ts) {
@@ -580,51 +576,85 @@
       const raw = Math.min((ts - t0) / DURATION, 1);
       const p   = ease(raw);
 
-      /* ── Fold line endpoints ──
-         A lives on the RIGHT EDGE and moves UP.
-         B lives on the BOTTOM EDGE and moves LEFT.
-         A leads B slightly so the corner lifts before the full edge follows —
-         this replicates the natural peel physics of flexible paper. */
-      const pA = Math.min(p * 1.1, 1);          // A finishes 10% early
-      const pB = Math.max(p * 1.1 - 0.10, 0);  // B starts 10% late
+      /* ── Fold line: x + y = k ──────────────────────────────────────────
+         k sweeps from W+H (fold at BR corner) down to 0 (fold past TL).
+         The fold line's intersection with the page edges changes in phases:
+           Phase 1  k ≥ max(W,H)   →  right edge  +  bottom edge
+           Phase 2a k in [W, H)    →  right edge  +  left edge   (portrait)
+           Phase 2b k in [H, W)    →  top edge    +  bottom edge (landscape)
+           Phase 3  k < min(W,H)   →  top edge    +  left edge
+      ────────────────────────────────────────────────────────────────── */
+      const k = (W + H) * (1 - p);
 
-      const ay = H * (1 - ease(pA));   // right-edge Y (moves up)
-      const bx = W * (1 - ease(pB));   // bottom-edge X (moves left)
+      let ax, ay, bx, by; // fold endpoints A and B on page edges
 
-      /* ── Quadratic bezier control point ──
-         Pulling the midpoint of AB inward toward the page origin creates
-         a concave curve on the fold — the warp of a flexible page as it peels. */
-      const cpx = ((W + bx) / 2) * 0.68;
-      const cpy = ((ay + H)  / 2) * 0.68;
+      if (k >= Math.max(W, H)) {
+        ax = W;       ay = k - W;
+        bx = k - H;   by = H;
+      } else if (H >= W) {           // portrait: phase 2a then 3
+        if (k >= W) {
+          ax = W;  ay = k - W;
+          bx = 0;  by = k;
+        } else {
+          ax = k;  ay = 0;
+          bx = 0;  by = k;
+        }
+      } else {                       // landscape: phase 2b then 3
+        if (k >= H) {
+          ax = k;       ay = 0;
+          bx = k - H;   by = H;
+        } else {
+          ax = k;  ay = 0;
+          bx = 0;  by = k;
+        }
+      }
 
-      /* ── Clip outgoing page to the unpeeled (upper-left) region ── */
-      outEl.style.clipPath =
-        `path('M 0 0 L ${W} 0 L ${W} ${f(ay)} Q ${f(cpx)} ${f(cpy)} ${f(bx)} ${H} L 0 ${H} Z')`;
+      /* ── Bezier control point: pull inward for a gentle paper-warp curve ── */
+      const cpx = ((ax + bx) / 2) * 0.72;
+      const cpy = ((ay + by) / 2) * 0.72;
 
-      /* ── Clip curl flap to the peeled triangle (lower-right) ──
-         This is the complementary region: from A, curving to B, then to corner. */
-      flap.style.clipPath =
-        `path('M ${W} ${f(ay)} L ${W} ${H} L ${f(bx)} ${H} Q ${f(cpx)} ${f(cpy)} ${W} ${f(ay)} Z')`;
-      flap.style.opacity = '1';
+      /* ── Clip path for the remaining (unpeeled) portion of the outgoing page ── */
+      let pathPage;
+      if (k >= W && k >= H) {
+        pathPage = `M 0 0 L ${f(W)} 0 L ${f(ax)} ${f(ay)} Q ${f(cpx)} ${f(cpy)} ${f(bx)} ${f(by)} L 0 ${f(H)} Z`;
+      } else if (k >= W) {           // portrait phase 2a: B on left edge
+        pathPage = `M 0 0 L ${f(W)} 0 L ${f(ax)} ${f(ay)} Q ${f(cpx)} ${f(cpy)} ${f(bx)} ${f(by)} Z`;
+      } else if (k >= H) {           // landscape phase 2b: A on top edge
+        pathPage = `M 0 0 L ${f(ax)} ${f(ay)} Q ${f(cpx)} ${f(cpy)} ${f(bx)} ${f(by)} L 0 ${f(H)} Z`;
+      } else {                       // phase 3: tiny triangle at TL
+        pathPage = `M 0 0 L ${f(ax)} ${f(ay)} Q ${f(cpx)} ${f(cpy)} ${f(bx)} ${f(by)} Z`;
+      }
 
-      /* ── Dynamic shadow on curl flap ──
-         Grows as the peel progresses (more lift = more shadow depth).
-         The direction (-x, -y) casts the shadow toward the upper-left,
-         landing on the still-visible portion of the outgoing page. */
-      const sOff  = (6  + p * 18).toFixed(0);
-      const sBlur = (10 + p * 26).toFixed(0);
-      const sAlpha = (0.10 + p * 0.22).toFixed(2);
-      flap.style.filter =
-        `drop-shadow(-${sOff}px -${sOff}px ${sBlur}px rgba(0,0,0,${sAlpha}))`;
+      /* ── Clip outgoing page — incoming page (page-b, z:1) visible below ── */
+      outEl.style.clipPath = `path('${pathPage}')`;
 
-      /* ── Perspective warp on the curl flap ──
-         rotate3d(1,-1,0) is the diagonal axis of a 45° fold.
-         A small rotation here makes the triangle appear to lift off the surface.
-         We increase the tilt as p grows (more lift at max peel). */
-      const tiltDeg = (p * 12).toFixed(2);
-      flap.style.transform =
-        `perspective(900px) rotate3d(1,-1,0,${tiltDeg}deg)`;
-      flap.style.transformOrigin = `${W}px ${H}px`; // anchor at BR corner
+      /* ── Shadow on remaining page: gradient angle tracks the fold direction ── */
+      const foldAngleDeg = Math.atan2(by - ay, bx - ax) * 180 / Math.PI + 90;
+      foldShadow.style.clipPath   = `path('${pathPage}')`;
+      foldShadow.style.background = `linear-gradient(${foldAngleDeg.toFixed(1)}deg, transparent 55%, rgba(0,0,0,${(p * 0.20).toFixed(2)}) 100%)`;
+      foldShadow.style.opacity    = '1';
+
+      /* ── Narrow curl strip ──
+         Opacity fades in as the fold grows (smooth corner formation) and
+         fades out in the final 8% so the strip doesn't cut off abruptly. */
+      const foldLen = Math.sqrt((bx-ax)*(bx-ax) + (by-ay)*(by-ay));
+      if (foldLen > 1) {
+        const d   = 52;
+        const px  = (by - ay) / foldLen;
+        const py  = (ax - bx) / foldLen;
+        const ax2 = ax + d*px,  ay2 = ay + d*py;
+        const bx2 = bx + d*px,  by2 = by + d*py;
+        const cpx2 = ((ax2 + bx2) / 2) * 0.72;
+        const cpy2 = ((ay2 + by2) / 2) * 0.72;
+        const pathCurl = `M ${f(ax)} ${f(ay)} Q ${f(cpx)} ${f(cpy)} ${f(bx)} ${f(by)} L ${f(bx2)} ${f(by2)} Q ${f(cpx2)} ${f(cpy2)} ${f(ax2)} ${f(ay2)} Z`;
+        // Fade in when fold is short (corner just forming); fade out near end
+        const fadeIn  = Math.min(foldLen / 120, 1);
+        const fadeOut = raw > 0.92 ? Math.max(1 - (raw - 0.92) / 0.08, 0) : 1;
+        flap.style.clipPath = `path('${pathCurl}')`;
+        flap.style.opacity  = (fadeIn * fadeOut).toFixed(3);
+      } else {
+        flap.style.opacity = '0';
+      }
 
       if (raw < 1) {
         requestAnimationFrame(frame);
@@ -652,11 +682,12 @@
     outEl.style.zIndex = '1';
     outEl.style.clipPath = 'none';
 
-    // Reset curl flap
-    flap.style.opacity   = '0';
-    flap.style.clipPath  = 'none';
-    flap.style.filter    = '';
-    flap.style.transform = '';
+    // Reset curl flap and fold shadow
+    flap.style.opacity  = '0';
+    flap.style.clipPath = 'none';
+    const foldShadow = document.getElementById('fold-shadow');
+    foldShadow.style.opacity  = '0';
+    foldShadow.style.clipPath = 'none';
 
     // Sync outgoing layer with the new content (so it's ready as the next "back")
     writeLayerFull(outId, sectionId, pageNum, title);
