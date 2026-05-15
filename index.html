@@ -55,9 +55,11 @@
     /*
       TWO-LAYER ARCHITECTURE
       ─────────────────────
-      #page-b  (z:1)  — incoming page, always below, fully visible
-      #page-a  (z:10) — outgoing page, sits on top, gets peeled away
-      #curl-flap (z:20) — back of the peeling page (drawn over both layers)
+      #page-b      (z:1)  — incoming page, always below, fully visible
+      #lift-shadow (z:5)  — shadow cast by lifted page onto incoming page
+      #page-a      (z:10) — outgoing page, sits on top, gets peeled away
+      #fold-shadow (z:11) — darkens outgoing page near the fold crease
+      #curl-flap   (z:20) — back/underside of the peeling page at the crease
       #spine-shadow (z:50) — always on top
     */
 
@@ -72,22 +74,23 @@
     #page-b { z-index:1;  }
     #page-a { z-index:10; }
 
-    /* Narrow strip showing the back/underside of the peeling page at the fold crease */
-    #curl-flap {
-      position:absolute; inset:0; z-index:20;
-      background: linear-gradient(
-        45deg,
-        rgba(210,195,165,0.97) 0%,
-        rgba(230,215,188,0.95) 40%,
-        rgba(245,232,210,0.93) 100%
-      );
+    /* Shadow the lifted page casts down onto the incoming page beneath it */
+    #lift-shadow {
+      position:absolute; inset:0; z-index:5;
       opacity:0; pointer-events:none;
       will-change:clip-path, opacity;
     }
 
-    /* Shadow cast on the remaining unpeeled page near the fold line */
+    /* Shadow on the remaining outgoing page, darkening near the fold crease */
     #fold-shadow {
       position:absolute; inset:0; z-index:11;
+      opacity:0; pointer-events:none;
+      will-change:clip-path, opacity;
+    }
+
+    /* Back/underside of the peeling page — gradient set dynamically in JS */
+    #curl-flap {
+      position:absolute; inset:0; z-index:20;
       opacity:0; pointer-events:none;
       will-change:clip-path, opacity;
     }
@@ -465,11 +468,14 @@
       </div>
     </div><!-- #page-a -->
 
-    <!-- Narrow curl strip shown at the fold line (back of peeling page) -->
-    <div id="curl-flap"></div>
+    <!-- Shadow cast by lifted page onto the incoming page below -->
+    <div id="lift-shadow"></div>
 
-    <!-- Darkening shadow cast on the remaining visible page near the fold -->
+    <!-- Darkening shadow on the remaining outgoing page near the fold -->
     <div id="fold-shadow"></div>
+
+    <!-- Back/underside of the peeling page at the fold crease -->
+    <div id="curl-flap"></div>
 
     <!-- Permanent spine shadow: always on top -->
     <div id="spine-shadow"></div>
@@ -577,6 +583,7 @@
     const inEl   = document.getElementById('page-' + inId);
     const flap       = document.getElementById('curl-flap');
     const foldShadow = document.getElementById('fold-shadow');
+    const liftShadow = document.getElementById('lift-shadow');
     const rp         = document.getElementById('right-page');
 
     // Pre-load next content into the incoming layer and put it below
@@ -647,32 +654,62 @@
       /* ── Clip outgoing page — incoming page (page-b, z:1) visible below ── */
       outEl.style.clipPath = `path('${pathPage}')`;
 
-      /* ── Shadow on remaining page: gradient angle tracks the fold direction ── */
+      /* ── Fold shadow on outgoing page: darkens strongly near the crease ── */
       const foldAngleDeg = Math.atan2(by - ay, bx - ax) * 180 / Math.PI + 90;
       foldShadow.style.clipPath   = `path('${pathPage}')`;
-      foldShadow.style.background = `linear-gradient(${foldAngleDeg.toFixed(1)}deg, transparent 55%, rgba(0,0,0,${(p * 0.20).toFixed(2)}) 100%)`;
+      foldShadow.style.background = `linear-gradient(${foldAngleDeg.toFixed(1)}deg, transparent 30%, rgba(0,0,0,${(p * 0.32).toFixed(2)}) 100%)`;
       foldShadow.style.opacity    = '1';
 
-      /* ── Narrow curl strip ──
-         Opacity fades in as the fold grows (smooth corner formation) and
-         fades out in the final 8% so the strip doesn't cut off abruptly. */
+      /* ── Curl strip + lift shadow ─────────────────────────────────────────
+         px, py = unit normal pointing from fold line toward the outgoing-page
+         (BR) side. The curl flap occupies this region (d px wide).
+         The lift shadow occupies the opposite side (sw px wide on the TL/
+         incoming-page side), casting depth onto page-b below.
+      ────────────────────────────────────────────────────────────────────── */
       const foldLen = Math.sqrt((bx-ax)*(bx-ax) + (by-ay)*(by-ay));
       if (foldLen > 1) {
-        const d   = 52;
-        const px  = (by - ay) / foldLen;
-        const py  = (ax - bx) / foldLen;
-        const ax2 = ax + d*px,  ay2 = ay + d*py;
-        const bx2 = bx + d*px,  by2 = by + d*py;
+        const px = (by - ay) / foldLen;  // normal toward BR (outgoing side)
+        const py = (ax - bx) / foldLen;
+
+        /* Fade in as the fold grows from the corner; fade out in final 8% */
+        const fadeIn  = Math.min(foldLen / 90, 1);
+        const fadeOut = raw > 0.92 ? Math.max(1 - (raw - 0.92) / 0.08, 0) : 1;
+        const alpha   = (fadeIn * fadeOut);
+
+        /* ── Curl flap (back of page visible at the crease) ── */
+        const d    = 75;
+        const ax2  = ax + d*px,  ay2 = ay + d*py;
+        const bx2  = bx + d*px,  by2 = by + d*py;
         const cpx2 = ((ax2 + bx2) / 2) * 0.72;
         const cpy2 = ((ay2 + by2) / 2) * 0.72;
         const pathCurl = `M ${f(ax)} ${f(ay)} Q ${f(cpx)} ${f(cpy)} ${f(bx)} ${f(by)} L ${f(bx2)} ${f(by2)} Q ${f(cpx2)} ${f(cpy2)} ${f(ax2)} ${f(ay2)} Z`;
-        // Fade in when fold is short (corner just forming); fade out near end
-        const fadeIn  = Math.min(foldLen / 120, 1);
-        const fadeOut = raw > 0.92 ? Math.max(1 - (raw - 0.92) / 0.08, 0) : 1;
+
+        /* Gradient runs perpendicular to fold: dark inner curve → bright
+           highlight at peak → medium as the page bends back down          */
+        const curlAngle = Math.atan2(py, px) * 180 / Math.PI;
+        flap.style.background = `linear-gradient(${curlAngle.toFixed(1)}deg,`
+          + `rgba(118,102,76,0.98) 0%,`
+          + `rgba(248,238,215,1.00) 35%,`
+          + `rgba(232,218,190,0.96) 100%)`;
         flap.style.clipPath = `path('${pathCurl}')`;
-        flap.style.opacity  = (fadeIn * fadeOut).toFixed(3);
+        flap.style.opacity  = alpha.toFixed(3);
+
+        /* ── Lift shadow (incoming page side of fold) ── */
+        const sw   = 95;
+        const ax3  = ax - sw*px,  ay3 = ay - sw*py;
+        const bx3  = bx - sw*px,  by3 = by - sw*py;
+        const cpx3 = cpx - sw*px, cpy3 = cpy - sw*py;
+        const pathLift = `M ${f(ax)} ${f(ay)} Q ${f(cpx)} ${f(cpy)} ${f(bx)} ${f(by)} L ${f(bx3)} ${f(by3)} Q ${f(cpx3)} ${f(cpy3)} ${f(ax3)} ${f(ay3)} Z`;
+
+        /* Gradient from deep shadow at fold → transparent as it recedes  */
+        const liftAngle = Math.atan2(-py, -px) * 180 / Math.PI;
+        const liftDark  = (p * 0.48).toFixed(2);
+        liftShadow.style.background = `linear-gradient(${liftAngle.toFixed(1)}deg, rgba(0,0,0,${liftDark}) 0%, transparent 100%)`;
+        liftShadow.style.clipPath   = `path('${pathLift}')`;
+        liftShadow.style.opacity    = alpha.toFixed(3);
       } else {
-        flap.style.opacity = '0';
+        flap.style.opacity       = '0';
+        liftShadow.style.opacity = '0';
       }
 
       if (raw < 1) {
@@ -701,12 +738,15 @@
     outEl.style.zIndex = '1';
     outEl.style.clipPath = 'none';
 
-    // Reset curl flap and fold shadow
+    // Reset curl flap, fold shadow, and lift shadow
     flap.style.opacity  = '0';
     flap.style.clipPath = 'none';
     const foldShadow = document.getElementById('fold-shadow');
     foldShadow.style.opacity  = '0';
     foldShadow.style.clipPath = 'none';
+    const liftShadow = document.getElementById('lift-shadow');
+    liftShadow.style.opacity  = '0';
+    liftShadow.style.clipPath = 'none';
 
     // Sync outgoing layer with the new content (so it's ready as the next "back")
     writeLayerFull(outId, sectionId, pageNum, title);
