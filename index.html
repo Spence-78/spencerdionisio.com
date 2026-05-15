@@ -496,7 +496,7 @@
      EASING
   ═══════════════════════════════════════════════════════════ */
   // Cubic ease-out: full speed from frame 1, decelerates into the finish
-  const ease = t => 1 - Math.pow(1 - t, 3);
+  const ease = t => -(Math.cos(Math.PI * t) - 1) / 2; // sine ease-in-out
 
   /* ═══════════════════════════════════════════════════════════
      WRITE CONTENT INTO A PAGE LAYER
@@ -594,7 +594,7 @@
     // Measure the right-page container (the coordinate space for path())
     const { width: W, height: H } = rp.getBoundingClientRect();
 
-    const DURATION = 550; // ms
+    const DURATION = 900; // ms
     let t0 = null;
 
     function frame(ts) {
@@ -635,9 +635,14 @@
         }
       }
 
-      /* ── Bezier control point: pull inward for a gentle paper-warp curve ── */
-      const cpx = ((ax + bx) / 2) * 0.72;
-      const cpy = ((ay + by) / 2) * 0.72;
+      /* ── Bezier control point ─────────────────────────────────────────────
+         Pull varies with progress: at mid-flip the fold bows dramatically
+         toward the TL corner (like real paper arcing through the air).
+         0.80 at start/end → 0.38 at midpoint.
+      ────────────────────────────────────────────────────────────────────── */
+      const curvePull = 0.80 - 0.42 * Math.sin(p * Math.PI);
+      const cpx = ((ax + bx) / 2) * curvePull;
+      const cpy = ((ay + by) / 2) * curvePull;
 
       /* ── Clip path for the remaining (unpeeled) portion of the outgoing page ── */
       let pathPage;
@@ -657,7 +662,7 @@
       /* ── Fold shadow on outgoing page: darkens strongly near the crease ── */
       const foldAngleDeg = Math.atan2(by - ay, bx - ax) * 180 / Math.PI + 90;
       foldShadow.style.clipPath   = `path('${pathPage}')`;
-      foldShadow.style.background = `linear-gradient(${foldAngleDeg.toFixed(1)}deg, transparent 30%, rgba(0,0,0,${(p * 0.32).toFixed(2)}) 100%)`;
+      foldShadow.style.background = `linear-gradient(${foldAngleDeg.toFixed(1)}deg, transparent 20%, rgba(0,0,0,${(Math.sin(p * Math.PI) * 0.38).toFixed(2)}) 100%)`;
       foldShadow.style.opacity    = '1';
 
       /* ── Curl strip + lift shadow ─────────────────────────────────────────
@@ -671,40 +676,42 @@
         const px = (by - ay) / foldLen;  // normal toward BR (outgoing side)
         const py = (ax - bx) / foldLen;
 
-        /* Fade in as the fold grows from the corner; fade out in final 8% */
-        const fadeIn  = Math.min(foldLen / 90, 1);
-        const fadeOut = raw > 0.92 ? Math.max(1 - (raw - 0.92) / 0.08, 0) : 1;
-        const alpha   = (fadeIn * fadeOut);
+        /* Fade in as fold grows from corner; fade out in final 6% */
+        const fadeIn  = Math.min(foldLen / 80, 1);
+        const fadeOut = raw > 0.94 ? Math.max(1 - (raw - 0.94) / 0.06, 0) : 1;
+        const alpha   = fadeIn * fadeOut;
 
         /* ── Curl flap (back of page visible at the crease) ── */
-        const d    = 75;
+        const d    = 110;
         const ax2  = ax + d*px,  ay2 = ay + d*py;
         const bx2  = bx + d*px,  by2 = by + d*py;
-        const cpx2 = ((ax2 + bx2) / 2) * 0.72;
-        const cpy2 = ((ay2 + by2) / 2) * 0.72;
+        const cpx2 = ((ax2 + bx2) / 2) * curvePull;
+        const cpy2 = ((ay2 + by2) / 2) * curvePull;
         const pathCurl = `M ${f(ax)} ${f(ay)} Q ${f(cpx)} ${f(cpy)} ${f(bx)} ${f(by)} L ${f(bx2)} ${f(by2)} Q ${f(cpx2)} ${f(cpy2)} ${f(ax2)} ${f(ay2)} Z`;
 
-        /* Gradient runs perpendicular to fold: dark inner curve → bright
-           highlight at peak → medium as the page bends back down          */
+        /* 4-stop gradient perpendicular to fold:
+           deep shadow at inner crease → sharp highlight at curl peak →
+           mid paper tone → warm edge as page drops back down           */
         const curlAngle = Math.atan2(py, px) * 180 / Math.PI;
         flap.style.background = `linear-gradient(${curlAngle.toFixed(1)}deg,`
-          + `rgba(118,102,76,0.98) 0%,`
-          + `rgba(248,238,215,1.00) 35%,`
-          + `rgba(232,218,190,0.96) 100%)`;
+          + `rgba(100,85,60,0.99) 0%,`
+          + `rgba(252,242,220,1.00) 30%,`
+          + `rgba(238,224,196,0.97) 65%,`
+          + `rgba(210,196,168,0.94) 100%)`;
         flap.style.clipPath = `path('${pathCurl}')`;
         flap.style.opacity  = alpha.toFixed(3);
 
         /* ── Lift shadow (incoming page side of fold) ── */
-        const sw   = 95;
+        const sw   = 130;
         const ax3  = ax - sw*px,  ay3 = ay - sw*py;
         const bx3  = bx - sw*px,  by3 = by - sw*py;
         const cpx3 = cpx - sw*px, cpy3 = cpy - sw*py;
         const pathLift = `M ${f(ax)} ${f(ay)} Q ${f(cpx)} ${f(cpy)} ${f(bx)} ${f(by)} L ${f(bx3)} ${f(by3)} Q ${f(cpx3)} ${f(cpy3)} ${f(ax3)} ${f(ay3)} Z`;
 
-        /* Gradient from deep shadow at fold → transparent as it recedes  */
+        /* Deep shadow right at fold, fading to transparent — peak at mid-flip */
         const liftAngle = Math.atan2(-py, -px) * 180 / Math.PI;
-        const liftDark  = (p * 0.48).toFixed(2);
-        liftShadow.style.background = `linear-gradient(${liftAngle.toFixed(1)}deg, rgba(0,0,0,${liftDark}) 0%, transparent 100%)`;
+        const liftDark  = (Math.sin(p * Math.PI) * 0.52).toFixed(2);
+        liftShadow.style.background = `linear-gradient(${liftAngle.toFixed(1)}deg, rgba(0,0,0,${liftDark}) 0%, rgba(0,0,0,${(liftDark * 0.15).toFixed(2)}) 60%, transparent 100%)`;
         liftShadow.style.clipPath   = `path('${pathLift}')`;
         liftShadow.style.opacity    = alpha.toFixed(3);
       } else {
