@@ -266,10 +266,6 @@
         <span class="toc-roman">vii.</span><span class="toc-name">About</span>
         <span class="toc-dots"></span><span class="toc-pg">9</span>
       </div>
-      <div class="toc-row" onclick="navigate('skills',10,'Skills')">
-        <span class="toc-roman">viii.</span><span class="toc-name">Skills</span>
-        <span class="toc-dots"></span><span class="toc-pg">10</span>
-      </div>
     </div>
 
     <div class="page-footer">
@@ -451,14 +447,6 @@
           <p class="about-p">I write in journals, play guitar, and care deeply about the people around me. I think being a good engineer and being a good person use a lot of the same muscles.</p>
         </div>
 
-        <div id="sec-skills" class="sec">
-          <hr class="ch-rule" style="margin-top:0;">
-          <div class="skill-g"><div class="skill-lbl">Design &amp; Engineering</div><div class="skill-val">SolidWorks &middot; Revit &middot; AutoCAD &middot; Bluebeam Revu &middot; GD&amp;T &middot; Schematic Reading</div></div>
-          <div class="skill-g"><div class="skill-lbl">Programming</div><div class="skill-val">Python &middot; MATLAB &middot; C++ &middot; Java &middot; RobotC &middot; Excel VBA</div></div>
-          <div class="skill-g"><div class="skill-lbl">Systems &amp; Automation</div><div class="skill-val">Power Automate &middot; Power Apps &middot; SharePoint &middot; Microsoft Forms</div></div>
-          <div class="skill-g"><div class="skill-lbl">Fabrication</div><div class="skill-val">Lathe &middot; Mill &middot; Drill Press &middot; Bandsaw &middot; 3D Printing</div></div>
-          <div class="skill-g"><div class="skill-lbl">Methods</div><div class="skill-val">Kaizen &middot; Bekker Terramechanics &middot; HAP Load Estimation &middot; Flow &amp; Pressure Analysis</div></div>
-        </div>
       </div><!-- .content-scroll -->
 
       <div class="page-footer">
@@ -487,7 +475,7 @@
   /* ═══════════════════════════════════════════════════════════
      STATE
   ═══════════════════════════════════════════════════════════ */
-  const SECTIONS = ['home','hh-angus','ats','uwlab','lunar','eshabot','inventory','about','skills'];
+  const SECTIONS = ['home','hh-angus','ats','uwlab','lunar','eshabot','inventory','about'];
   let currentId    = 'home';
   let busy         = false;
   let activeLayer  = 'a';   // 'a' or 'b' — whichever is currently on top (z-index 10)
