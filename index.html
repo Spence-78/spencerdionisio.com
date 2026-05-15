@@ -187,6 +187,13 @@
     .about-p { font-size:clamp(13px,1.3vw,15px); line-height:1.9; text-align:justify; hyphens:auto; margin-bottom:13px; text-indent:1.6em; }
     .about-p.first { text-indent:0; }
 
+    .pizza-row  { display:flex; gap:10px; margin-bottom:8px; align-items:baseline; }
+    .pizza-score { font-size:12px; font-weight:600; min-width:2.4rem; text-align:right; flex-shrink:0; color:var(--ink); }
+    .pizza-score.no-score { color:var(--faded); font-weight:400; }
+    .pizza-info { flex:1; }
+    .pizza-name { font-size:clamp(12px,1.2vw,14px); display:block; }
+    .pizza-note { font-size:10px; color:var(--faded); font-style:italic; display:block; margin-top:2px; line-height:1.45; }
+
     /* ═══════════════════════════════════════
        MOBILE
     ═══════════════════════════════════════ */
@@ -265,6 +272,10 @@
       <div class="toc-row" onclick="navigate('about',9,'About')">
         <span class="toc-roman">vii.</span><span class="toc-name">About</span>
         <span class="toc-dots"></span><span class="toc-pg">9</span>
+      </div>
+      <div class="toc-row" onclick="navigate('pizza',10,'Personal')">
+        <span class="toc-roman">viii.</span><span class="toc-name">NYC Pizza Rankings</span>
+        <span class="toc-dots"></span><span class="toc-pg">10</span>
       </div>
     </div>
 
@@ -447,6 +458,36 @@
           <p class="about-p">I write in journals, play guitar, and care deeply about the people around me. I think being a good engineer and being a good person use a lot of the same muscles.</p>
         </div>
 
+        <div id="sec-pizza" class="sec">
+          <div class="ch-title">NYC Pizza Rankings</div>
+          <hr class="ch-rule">
+          <p class="about-p first" style="font-style:italic;margin-bottom:18px;">An ongoing record of every slice worth remembering. Judged on dough, sauce, cheese, grease balance, and crunch.</p>
+
+          <div class="sub-lbl">Trip I</div>
+          <div class="pizza-row"><span class="pizza-score">9.7</span><span class="pizza-info"><span class="pizza-name">L'Industrie</span><span class="pizza-note">burrata pizza was glorious; pep perfectly crisped; cheese not oily but not dry; super fresh tomato sauce; CRISP dough that didn't flop</span></span></div>
+          <div class="pizza-row"><span class="pizza-score">9.5</span><span class="pizza-info"><span class="pizza-name">Scarr's</span><span class="pizza-note">the perfect OG NYC slice; good sauce; not oily but not dry; amazing dough with good crisp</span></span></div>
+          <div class="pizza-row"><span class="pizza-score">9.3</span><span class="pizza-info"><span class="pizza-name">Juliana's</span></span></div>
+          <div class="pizza-row"><span class="pizza-score">9.0</span><span class="pizza-info"><span class="pizza-name">Joe's (Bleecker)</span><span class="pizza-note">everything you need; perfectly sweet sauce; thin dough but a touch floppy; not too oily</span></span></div>
+          <div class="pizza-row"><span class="pizza-score">8.7</span><span class="pizza-info"><span class="pizza-name">John's of Bleecker Street</span><span class="pizza-note">no grease; great flavour in dough and sauce</span></span></div>
+          <div class="pizza-row"><span class="pizza-score">8.3</span><span class="pizza-info"><span class="pizza-name">Bleecker Street Pizza</span><span class="pizza-note">good but a little thick; great crunch; good flavour in dough and sauce; slightly oily</span></span></div>
+          <div class="pizza-row"><span class="pizza-score">8.3</span><span class="pizza-info"><span class="pizza-name">Table 87</span><span class="pizza-note">really good cheese</span></span></div>
+          <div class="pizza-row"><span class="pizza-score">7.7</span><span class="pizza-info"><span class="pizza-name">Champion</span><span class="pizza-note">not enough flavour in dough</span></span></div>
+          <div class="pizza-row"><span class="pizza-score">7.5</span><span class="pizza-info"><span class="pizza-name">La Villa Pizzeria</span><span class="pizza-note">square pizza</span></span></div>
+          <div class="pizza-row"><span class="pizza-score">6.5</span><span class="pizza-info"><span class="pizza-name">ROMA</span><span class="pizza-note">too greasy; cheese and fat separated; lacking flavour in dough; didn't pull apart enough</span></span></div>
+          <div class="pizza-row"><span class="pizza-score">6.0</span><span class="pizza-info"><span class="pizza-name">Pizza Town</span></span></div>
+
+          <div class="sub-lbl">December 2024</div>
+          <div class="pizza-row"><span class="pizza-score">9.8</span><span class="pizza-info"><span class="pizza-name">Lucali</span><span class="pizza-note">large cheese pizza — as close to perfect as it gets</span></span></div>
+          <div class="pizza-row"><span class="pizza-score">8.5</span><span class="pizza-info"><span class="pizza-name">Joe's on Carmine (OG)</span></span></div>
+          <div class="pizza-row"><span class="pizza-score">6.8</span><span class="pizza-info"><span class="pizza-name">Mamas Too (square)</span><span class="pizza-note">great crisp, that's about it; greasy cheese; left hands oily; too thick; vodka slice not it</span></span></div>
+          <div class="pizza-row"><span class="pizza-score">6.5</span><span class="pizza-info"><span class="pizza-name">Il Fornelo</span></span></div>
+          <div class="pizza-row"><span class="pizza-score no-score">&mdash;</span><span class="pizza-info"><span class="pizza-name">Famiglia</span></span></div>
+
+          <div class="sub-lbl">December 2025</div>
+          <div class="pizza-row"><span class="pizza-score">7.8</span><span class="pizza-info"><span class="pizza-name">The Upside Down</span></span></div>
+          <div class="pizza-row"><span class="pizza-score">6.7</span><span class="pizza-info"><span class="pizza-name">Il Mattone</span></span></div>
+        </div>
+
       </div><!-- .content-scroll -->
 
       <div class="page-footer">
@@ -475,7 +516,7 @@
   /* ═══════════════════════════════════════════════════════════
      STATE
   ═══════════════════════════════════════════════════════════ */
-  const SECTIONS = ['home','hh-angus','ats','uwlab','lunar','eshabot','inventory','about'];
+  const SECTIONS = ['home','hh-angus','ats','uwlab','lunar','eshabot','inventory','about','pizza'];
   let currentId    = 'home';
   let busy         = false;
   let activeLayer  = 'a';   // 'a' or 'b' — whichever is currently on top (z-index 10)
