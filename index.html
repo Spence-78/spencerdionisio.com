@@ -133,6 +133,7 @@
     .toc-group { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--faded); margin:20px 0 8px; opacity:0.7; }
     .toc-row { display:flex; align-items:baseline; cursor:pointer; padding:4px 0; }
     .toc-row:hover .toc-name { text-decoration:underline; }
+    .toc-ext .toc-name { color:var(--faded); }
     .toc-roman { font-style:italic; font-size:11.5px; color:var(--faded); width:28px; flex-shrink:0; }
     .toc-name  { font-size:13px; }
     .toc-dots  { flex:1; overflow:hidden; position:relative; height:1.2em; margin:0 5px; }
@@ -278,6 +279,14 @@
       <div class="toc-row" onclick="navigate('pizza',10,'Personal')">
         <span class="toc-roman">viii.</span><span class="toc-name">NYC Pizza Rankings</span>
         <span class="toc-dots"></span><span class="toc-pg">10</span>
+      </div>
+      <div class="toc-row toc-ext" onclick="window.open('https://letterboxd.com/spencedionisio/','_blank')">
+        <span class="toc-roman">ix.</span><span class="toc-name">Letterboxd ↗</span>
+        <span class="toc-dots"></span><span class="toc-pg"></span>
+      </div>
+      <div class="toc-row toc-ext" onclick="window.open('https://substack.com/@spencerdionisio','_blank')">
+        <span class="toc-roman">x.</span><span class="toc-name">Substack ↗</span>
+        <span class="toc-dots"></span><span class="toc-pg"></span>
       </div>
     </div>
 
