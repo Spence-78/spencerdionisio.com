@@ -639,14 +639,16 @@
       const p   = ease(raw);
 
       /* ── Fold line: x + y = k ──────────────────────────────────────────
-         k sweeps from W+H (fold at BR corner) down to 0 (fold past TL).
-         The fold line's intersection with the page edges changes in phases:
+         k sweeps from (W+H-CORNER) down to 0. Starting below W+H means
+         the fold already has length CORNER*√2 at frame 1, so the corner
+         visibly pokes out the moment the animation begins.
            Phase 1  k ≥ max(W,H)   →  right edge  +  bottom edge
            Phase 2a k in [W, H)    →  right edge  +  left edge   (portrait)
            Phase 2b k in [H, W)    →  top edge    +  bottom edge (landscape)
            Phase 3  k < min(W,H)   →  top edge    +  left edge
       ────────────────────────────────────────────────────────────────── */
-      const k = (W + H) * (1 - p);
+      const CORNER = 105; // px — visible corner at the very first frame
+      const k = (W + H - CORNER) * (1 - p);
 
       let ax, ay, bx, by; // fold endpoints A and B on page edges
 
@@ -712,8 +714,8 @@
         const px = (by - ay) / foldLen;  // normal toward BR (outgoing side)
         const py = (ax - bx) / foldLen;
 
-        /* Fade in as fold grows from corner; fade out in final 6% */
-        const fadeIn  = Math.min(foldLen / 80, 1);
+        /* Corner is visible from frame 1 — no fade-in needed; fade out in final 6% */
+        const fadeIn  = Math.min(foldLen / 30, 1);
         const fadeOut = raw > 0.94 ? Math.max(1 - (raw - 0.94) / 0.06, 0) : 1;
         const alpha   = fadeIn * fadeOut;
 
